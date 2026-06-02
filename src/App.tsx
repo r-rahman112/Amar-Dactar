@@ -29,6 +29,22 @@ export default function App() {
   const [doctorActiveChatId, setDoctorActiveChatId] = useState<string | null>(null);
   const [activePatientId, setActivePatientId] = useState<string | null>(null);
 
+  useEffect(() => {
+    const handleNavigateHome = () => {
+      setView('landing');
+      setInitialUploadType(null);
+      setTimeout(() => {
+        const heroEl = document.getElementById('hero-section');
+        if (heroEl) {
+          heroEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    };
+
+    window.addEventListener('navigateHome', handleNavigateHome);
+    return () => window.removeEventListener('navigateHome', handleNavigateHome);
+  }, []);
+
   const handleStartConsultation = (type?: 'symptom' | 'report') => {
     if (!isAuthenticated) {
       setView('auth');

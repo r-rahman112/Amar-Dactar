@@ -37,7 +37,7 @@ interface PatientRegistrationProps {
 }
 
 export default function PatientRegistration({ onSuccess, onLoginClick, isCompletingProfile, initialStep }: PatientRegistrationProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { login } = useAuth();
   const [step, setStep] = useState(initialStep || 1);
   const [loading, setLoading] = useState(false);
@@ -313,22 +313,24 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
         <BrandLogo iconSize="h-8 w-8" />
       </div>
       <div className="w-full bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden relative">
-        {/* Progress Bar Header */}
-        <div className="bg-slate-50 px-6 py-6 border-b border-slate-100 relative">
-         <div className="absolute top-0 left-0 h-1.5 bg-blue-600 transition-all duration-500 ease-out z-10" style={{ width: `${progress}%` }}></div>
-         <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-50"></div>
-         <div className="flex justify-between items-center text-sm font-semibold tracking-tight">
-            <span className={step >= 1 ? 'text-blue-600' : 'text-slate-400'}>{t('1. Account')}</span>
-            <ArrowRight className="w-4 h-4 text-slate-300" />
-            <span className={step >= 2 ? 'text-blue-600' : 'text-slate-400'}>{t('2. Basic Info')}</span>
-            <ArrowRight className="w-4 h-4 text-slate-300" />
-            <span className={step >= 3 ? 'text-blue-600' : 'text-slate-400'}>{t('3. Medical Info')}</span>
-            <ArrowRight className="w-4 h-4 text-slate-300" />
-            <span className={step >= 4 ? 'text-blue-600' : 'text-slate-400'}>{t('4. Emergency')}</span>
-            <ArrowRight className="w-4 h-4 text-slate-300" />
-            <span className={step === 5 ? 'text-blue-600' : 'text-slate-400'}>{t('5. Review')}</span>
-         </div>
-      </div>
+        {/* Unified Progress Header for All Screens */}
+        <div className="flex flex-col px-6 py-5 md:px-8 md:py-6 border-b border-slate-100 bg-slate-50 gap-4">
+           <div className="flex justify-between items-end w-full">
+             <div className="space-y-1">
+               <div className="text-[13px] font-bold tracking-wide text-blue-600 uppercase">
+                 {language === 'bn' ? `ধাপ ${['১', '২', '৩', '৪', '৫'][step - 1]} / ৫` : `Step ${step} of 5`}
+               </div>
+               <div className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                 {t(`step_title_${step}`)}
+               </div>
+             </div>
+             <span className="text-sm font-bold text-slate-500 mb-1">{progress}%</span>
+           </div>
+           
+           <div className="w-full bg-slate-200 h-2 md:h-2.5 rounded-full overflow-hidden">
+             <div className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
+           </div>
+        </div>
 
       <div className="p-6 md:p-8">
         

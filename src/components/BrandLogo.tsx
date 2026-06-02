@@ -8,8 +8,26 @@ interface BrandLogoProps {
 }
 
 export default function BrandLogo({ className = "", iconSize = "h-6 w-6", light = false }: BrandLogoProps) {
+  const handleClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent('navigateHome'));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      handleClick(e);
+    }
+  };
+
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div 
+      className={`flex items-center gap-2 cursor-pointer ${className}`}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label="Go to Home Page"
+    >
       <div className={`${light ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'} p-1.5 rounded-lg shadow-sm`}>
         <ShieldPlus className={iconSize} />
       </div>

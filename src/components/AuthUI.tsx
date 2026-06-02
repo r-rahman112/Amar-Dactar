@@ -191,10 +191,6 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess }: AuthUIProps
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4">
-      <div className="absolute top-6 left-6 cursor-pointer text-slate-500 hover:text-slate-800 transition-colors" onClick={onBack}>
-        <ArrowLeft className="h-6 w-6" />
-      </div>
-
       {view === 'register' ? (
         <div className="w-full relative z-10 my-10 mt-20">
            <PatientRegistration onSuccess={onSuccess} onLoginClick={() => setView('login')} />

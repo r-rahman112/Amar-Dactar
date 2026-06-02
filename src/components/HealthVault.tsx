@@ -291,14 +291,14 @@ export default function HealthVault({ onBack, userRole = 'PATIENT', patientId = 
                     </div>
                     
                     <div className="flex items-center gap-2 self-end sm:self-auto opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={(e) => downloadFile(record, e)} className="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-full transition-colors tooltip" title="Download">
+                      <button onClick={(e) => downloadFile(record, e)} className="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-full transition-colors tooltip" title={t('Download')}>
                         <Download className="w-4 h-4" />
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); setPreviewFile(record); }} className="p-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-full transition-colors tooltip" title="Preview">
+                      <button onClick={(e) => { e.stopPropagation(); setPreviewFile(record); }} className="p-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-full transition-colors tooltip" title={t('Preview')}>
                         <Eye className="w-4 h-4" />
                       </button>
                       {userRole === 'PATIENT' && (
-                        <button onClick={(e) => deleteRecord(record.id, e)} className="p-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-full transition-colors tooltip" title="Delete">
+                        <button onClick={(e) => deleteRecord(record.id, e)} className="p-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-full transition-colors tooltip" title={t('Delete')}>
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
@@ -341,7 +341,7 @@ export default function HealthVault({ onBack, userRole = 'PATIENT', patientId = 
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={(e) => downloadFile(previewFile, e)} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors">
-                    <Download className="w-4 h-4" /> <span className="hidden sm:inline-block">Download</span>
+                    <Download className="w-4 h-4" /> <span className="hidden sm:inline-block">{t('Download')}</span>
                   </button>
                   <button
                     onClick={() => setPreviewFile(null)}

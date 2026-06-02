@@ -11,14 +11,14 @@ interface HeaderProps {
   onOpenDashboard: () => void;
 }
 
-export const getRoleDisplay = (role: string) => {
+export const getRoleDisplay = (role: string, t: (key: string) => string) => {
   switch (role) {
-    case 'user': return 'রোগী';
-    case 'doctor': return 'ডাক্তার';
-    case 'admin': return 'অ্যাডমিন';
-    case 'superadmin': return 'সুপার অ্যাডমিন';
-    case 'assistant_admin': return 'অ্যাসিস্ট্যান্ট অ্যাডমিন';
-    default: return 'User';
+    case 'user': return t('Patient');
+    case 'doctor': return t('Doctor');
+    case 'admin': return t('Admin');
+    case 'superadmin': return t('Superuser');
+    case 'assistant_admin': return t('Admin');
+    default: return t('User');
   }
 };
 
@@ -34,6 +34,12 @@ export default function Header({ onStartConsultation, onOpenDashboard }: HeaderP
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const closeMenu = () => setIsMobileMenuOpen(false);
+    window.addEventListener('navigateHome', closeMenu);
+    return () => window.removeEventListener('navigateHome', closeMenu);
   }, []);
 
   return (
@@ -65,7 +71,7 @@ export default function Header({ onStartConsultation, onOpenDashboard }: HeaderP
                 <div className="bg-blue-100 text-blue-600 p-1 rounded-lg">
                   <User className="h-4 w-4" />
                 </div>
-                <span>{user.fullName || user.email?.split('@')[0]} ({getRoleDisplay(user.role)})</span>
+                <span>{user.fullName || user.email?.split('@')[0]} ({getRoleDisplay(user.role, t)})</span>
               </button>
             ) : (
               <button
@@ -126,7 +132,7 @@ export default function Header({ onStartConsultation, onOpenDashboard }: HeaderP
                 <div className="bg-blue-100 text-blue-600 p-1 rounded-lg">
                   <User className="h-4 w-4" />
                 </div>
-                <span>{user.fullName || user.email?.split('@')[0]} ({getRoleDisplay(user.role)})</span>
+                <span>{user.fullName || user.email?.split('@')[0]} ({getRoleDisplay(user.role, t)})</span>
               </button>
             ) : (
               <button

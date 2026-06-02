@@ -36,9 +36,10 @@ html[lang="bn"] {
   --main-font-display: "Anek Bangla", sans-serif;
 }
 
-/* Custom smooth scrolling */
+/* Custom smooth scrolling and momentum */
 html {
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Momentum scrolling on mobile iOS */
 }
 
 body {
@@ -46,10 +47,18 @@ body {
   background-color: #ffffff;
   color: #1e293b;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none; /* Prevents scroll bounce lag on some mobile devices */
+  text-rendering: optimizeLegibility;
 }
 
 .font-display {
   font-family: var(--font-display);
+}
+
+/* Scrollable containers optimization */
+.overflow-y-auto, .overflow-x-auto, .overflow-auto {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Custom Keyframe Animations */
