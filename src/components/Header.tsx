@@ -86,7 +86,6 @@ export default function Header({ onStartConsultation, onOpenDashboard }: HeaderP
 
           {/* Mobile menu toggle */}
           <div className="md:hidden flex items-center space-x-3 ml-auto">
-            <LanguageToggle isMobile={false} />
             {isAuthenticated && <NotificationDropdown />}
             <button
               id="mobile-menu-toggle"
@@ -103,6 +102,14 @@ export default function Header({ onStartConsultation, onOpenDashboard }: HeaderP
       {/* Mobile Menu Panel */}
       {isMobileMenuOpen && (
         <div className="md:hidden animate-fade-in bg-white border-b border-slate-100 shadow-lg absolute top-full left-0 right-0 py-4 px-4 space-y-3 z-50">
+          
+          <div className="flex flex-col space-y-4">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-sm font-medium text-slate-600">{t('Language')}</span>
+              <LanguageToggle />
+            </div>
+          </div>
+
           <div className="pt-4 border-t border-slate-100 flex flex-col space-y-3">
             <div className="flex items-center text-xs text-emerald-600 bg-emerald-50 border border-emerald-100/80 px-3 py-1.5 rounded-full font-medium space-x-1.5 self-start">
               <ShieldCheck className="h-4 w-4" />

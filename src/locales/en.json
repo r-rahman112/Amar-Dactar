@@ -395,5 +395,7 @@
   "csv": "csv",
   "xlsx": "xlsx",
   "-": "-",
-  "heroTagline": "Your Health, Our Commitment"
+  "heroTagline": "Your Health, Our Commitment",
+  "Already have Account?": "Already have Account?",
+  "Sign In →": "Sign In →"
 }
