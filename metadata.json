@@ -1,0 +1,6 @@
+{
+  "name": "AI Health Assistant",
+  "description": "A modern and minimal landing page for an AI Health Assistant featuring Symptom Analysis, Report Explanation, and Doctor Recommendations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

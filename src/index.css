@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Anek Bangla';
+  src: url('https://res.cloudinary.com/duwydl2nl/raw/upload/v1780171725/Anek_Bangla_Regular_pdm8f4.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anek Bangla';
+  src: url('https://res.cloudinary.com/duwydl2nl/raw/upload/v1780171766/Anek_Bangla_Bold_hdfmhf.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anek Bangla';
+  src: url('https://res.cloudinary.com/duwydl2nl/raw/upload/v1780171767/Anek_Bangla_ExtraBold_yjnqs0.ttf') format('truetype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: var(--main-font-sans);
+  --font-display: var(--main-font-display);
+  --font-brand: "Anek Bangla";
+}
+
+:root {
+  --main-font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --main-font-display: "Outfit", "Inter", sans-serif;
+}
+
+html[lang="bn"] {
+  --main-font-sans: "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
+  --main-font-display: "Anek Bangla", sans-serif;
+}
+
+/* Custom smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #ffffff;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Custom Keyframe Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes infiniteLoading {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-zoom-in {
+  animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-infinite-loading {
+  animation: infiniteLoading 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@layer components {
+  /* Global Button and Component Animation System */
+  button, a {
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Apply hover/active scale exclusively to obvious buttons or elements with role=button */
+  button:not(:disabled):not(.no-anim):hover, 
+  a.btn:hover,
+  .hover-scale:hover {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  button:not(:disabled):not(.no-anim):active, 
+  a.btn:active,
+  .hover-scale:active {
+    transform: translateY(0px) scale(0.98);
+  }
+
+  button:focus-visible, 
+  a:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
