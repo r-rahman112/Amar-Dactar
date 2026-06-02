@@ -43,10 +43,7 @@ export default function HowItWorks() {
                     <div className="h-20 w-20 bg-blue-50 border border-b-2 border-blue-200/50 rounded-2xl flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:scale-105 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-150">
                       <IconComponent className="h-8 w-8" />
                     </div>
-                    {/* Number badge */}
-                    <div className="absolute -top-1.5 -right-1.5 h-6 w-6 bg-slate-900 text-white rounded-full text-xs font-bold flex items-center justify-center shadow-md">
-                      {stepItem.step}
-                    </div>
+                    {/* Number badge removed */}
                   </div>
 
                   {/* Title */}

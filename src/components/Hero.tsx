@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { Play, Upload, MessageSquare, ShieldCheck, CheckCircle2, ChevronRight, Activity, Calendar, HeartPulse } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTranslation } from '../contexts/LanguageContext';
-
+import heroImage from '../assets/hero.png';
 interface HeroProps {
   onStartConsultation: () => void;
   onUploadReport: () => void;
@@ -11,7 +10,6 @@ interface HeroProps {
 
 export default function Hero({ onStartConsultation, onUploadReport, onOpenDashboard }: HeroProps) {
   const { t } = useTranslation();
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   return (
     <section
@@ -26,7 +24,7 @@ export default function Hero({ onStartConsultation, onUploadReport, onOpenDashbo
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Hero Left Content */}
-          <div className="lg:col-span-6 flex flex-col space-y-6 text-left order-1">
+          <div className="lg:col-span-5 flex flex-col space-y-6 text-left order-1">
             {/* Tagline */}
             <div className="inline-flex self-start items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100/90 rounded-full text-blue-700 text-xs font-semibold tracking-wider">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
@@ -105,50 +103,38 @@ export default function Hero({ onStartConsultation, onUploadReport, onOpenDashbo
             </div>
           </div>
 
-          {/* Hero Right Graphic */}
-          <div className="lg:col-span-6 relative mt-12 lg:mt-0 flex justify-center w-full order-2">
-            <div className="relative w-full max-w-[450px] md:w-[90%] md:max-w-[600px] lg:w-full lg:max-w-[600px] xl:max-w-[700px] aspect-square mx-auto">
-              
-              {/* Skeleton Loader */}
-              <div 
-                className={`absolute inset-0 bg-slate-100/80 rounded-3xl animate-pulse transition-opacity duration-700 select-none pointer-events-none ${
-                  isImageLoaded ? 'opacity-0 hidden' : 'opacity-100'
-                }`}
-              />
+          {/* Hero Image */}
+<div className="lg:col-span-7 flex justify-center items-center order-2 mt-10 lg:mt-0">
+    <img
+    src={heroImage}
+    alt="আমার ডাক্তার AI স্বাস্থ্য সহকারী"
+    loading="eager"
+    decoding="async"
+    draggable={false}
+    className="
+      block
+      mx-auto
+      w-full
+      h-auto
+      object-contain
 
-              <picture className={`w-full h-full flex justify-center relative z-10 transition-opacity duration-700 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-                <source 
-                  srcSet="https://res.cloudinary.com/duwydl2nl/image/upload/f_auto,q_auto/v1780412962/ChatGPT_Image_May_31_2026_02_44_03_PM_a1auya.webp" 
-                  type="image/webp" 
-                />
-                <img
-                  src="https://res.cloudinary.com/duwydl2nl/image/upload/v1780412962/ChatGPT_Image_May_31_2026_02_44_03_PM_a1auya.png"
-                  srcSet="
-                    https://res.cloudinary.com/duwydl2nl/image/upload/w_450/v1780412962/ChatGPT_Image_May_31_2026_02_44_03_PM_a1auya.png 450w,
-                    https://res.cloudinary.com/duwydl2nl/image/upload/w_600/v1780412962/ChatGPT_Image_May_31_2026_02_44_03_PM_a1auya.png 600w,
-                    https://res.cloudinary.com/duwydl2nl/image/upload/w_700/v1780412962/ChatGPT_Image_May_31_2026_02_44_03_PM_a1auya.png 700w"
-                  sizes="(max-width: 767px) 100vw, (max-width: 1023px) 90vw, 50vw"
-                  alt="AI Doctor Assistant - Human Doctor and Artificial Intelligence Healthcare Assistant"
-                  loading="eager"
-                  fetchPriority="high"
-                  width="700"
-                  height="700"
-                  onLoad={() => setIsImageLoaded(true)}
-                  onError={() => setIsImageLoaded(true)}
-                  ref={(img) => {
-                    if (img?.complete) {
-                      setIsImageLoaded(true);
-                    }
-                  }}
-                  className="w-full h-full object-contain block mx-auto"
-                  style={{ aspectRatio: '1/1' }}
-                />
-              </picture>
-            </div>
-          </div>
+      max-w-[320px]
+      sm:max-w-[420px]
+      md:max-w-[520px]
+      lg:max-w-[620px]
+      xl:max-w-[700px]
+      2xl:max-w-[800px]
 
-        </div>
+      select-none
+      drop-shadow-2xl
+    "
+     />
+</div>
+
+    
+    
       </div>
-    </section>
-  );
+    </div>
+  </section>
+);
 }
