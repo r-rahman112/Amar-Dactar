@@ -14,6 +14,7 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import UserManagement from './UserManagement';
 import DoctorVerificationsManagement from './DoctorVerificationsManagement';
+import ConsentHistory from './ConsentHistory';
 import { getRoleDisplay } from './Header';
 
 interface AdminDashboardProps {
@@ -46,7 +47,7 @@ const RECENT_APPOINTMENTS = [
   { id: '4', patient: 'John Matthews', doctor: 'Dr. Emily Davis', type: 'Offline', status: 'Upcoming', time: '04:00 PM' },
 ];
 
-type MenuKey = 'dashboard' | 'users' | 'suspended_users' | 'banned_users' | 'export_data' | 'profile_edit' | 'account_settings' | 'doctor_verifications';
+type MenuKey = 'dashboard' | 'users' | 'suspended_users' | 'banned_users' | 'export_data' | 'profile_edit' | 'account_settings' | 'doctor_verifications' | 'consent_history';
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const { t } = useTranslation();
@@ -58,6 +59,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     { id: 'dashboard', label: t('Dashboard'), icon: LayoutDashboard },
     { id: 'users', label: t('All Users'), icon: Users },
     { id: 'doctor_verifications', label: t('Doctor Verifications'), icon: ShieldCheck },
+    { id: 'consent_history', label: t('Consent History'), icon: FileText },
     { id: 'suspended_users', label: t('Suspended Users'), icon: Clock },
     { id: 'banned_users', label: t('Banned Users'), icon: ShieldCheck },
     { id: 'export_data', label: t('Export Data'), icon: FileText },
@@ -342,7 +344,11 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             <DoctorVerificationsManagement />
           )}
 
-          {activeMenu !== 'dashboard' && activeMenu !== 'users' && activeMenu !== 'suspended_users' && activeMenu !== 'banned_users' && activeMenu !== 'export_data' && activeMenu !== 'doctor_verifications' && (
+          {activeMenu === 'consent_history' && (
+            <ConsentHistory />
+          )}
+
+          {activeMenu !== 'dashboard' && activeMenu !== 'users' && activeMenu !== 'suspended_users' && activeMenu !== 'banned_users' && activeMenu !== 'export_data' && activeMenu !== 'doctor_verifications' && activeMenu !== 'consent_history' && (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-32 px-4">
               <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5 border border-slate-200">
                 <FileText className="h-8 w-8 text-slate-400" />

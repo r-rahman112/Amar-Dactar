@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { query } from '../config/db';
 import { authenticateToken, isAdmin } from '../middleware/auth';
 import { v4 as uuidv4 } from 'uuid';
+import { createNotification } from '../utils/notifications';
 
 const router = Router();
 
@@ -49,13 +50,25 @@ router.patch('/doctor-verifications/:id', authenticateToken, isAdmin, async (req
     }
 
     if (message) {
-      await query(`
-        INSERT INTO notifications (id, user_id, type, message)
-        VALUES ($1, $2, $3, $4)
-      `, [uuidv4(), id, 'VERIFICATION_UPDATE', message]);
+      await createNotification(id, 'VERIFICATION_UPDATE', message);
     }
     
     res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get consent history
+router.get('/consents', authenticateToken, isAdmin, async (req: any, res) => {
+  try {
+    const result = await query(`
+      SELECT c.*, u.fullName, u.email
+      FROM consents c
+      JOIN users u ON c.user_id = u.id
+      ORDER BY c.consent_timestamp DESC
+    `);
+    res.json(result.rows);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

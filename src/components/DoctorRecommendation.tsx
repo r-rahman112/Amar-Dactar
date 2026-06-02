@@ -1,84 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, MapPin, Star, Calendar, Clock, Video, UserCheck, Filter, ArrowLeft, ChevronDown, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import AppointmentBooking from './AppointmentBooking';
 import { useTranslation } from '../contexts/LanguageContext';
 
-// Mock Data
-const DOCTORS = [
-  {
-    id: 1,
-    name: 'Dr. Sarah Jenkins',
-    specialty: 'Cardiologist',
-    experience: '12',
-    rating: 4.9,
-    reviews: 124,
-    location: 'Downtown Clinic, NY',
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop&q=80',
-    availableOnline: true,
-    availableOffline: true,
-    nextAvailable: 'Today, 2:00 PM',
-    price: 150
-  },
-  {
-    id: 2,
-    name: 'Dr. Michael Chen',
-    specialty: 'Dermatologist',
-    experience: '8',
-    rating: 4.8,
-    reviews: 89,
-    location: 'Westside Medical, NY',
-    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=300&h=300&fit=crop&q=80',
-    availableOnline: true,
-    availableOffline: false,
-    nextAvailable: 'Tomorrow, 10:00 AM',
-    price: 120
-  },
-  {
-    id: 3,
-    name: 'Dr. Emily Carter',
-    specialty: 'Pediatrician',
-    experience: '15',
-    rating: 4.9,
-    reviews: 210,
-    location: 'Uptown Hospital, NY',
-    image: 'https://images.unsplash.com/photo-1594824432258-fce5e6f54c9c?w=300&h=300&fit=crop&q=80',
-    availableOnline: false,
-    availableOffline: true,
-    nextAvailable: 'Wed, 9:00 AM',
-    price: 100
-  },
-  {
-    id: 4,
-    name: 'Dr. Robert Davis',
-    specialty: 'Neurologist',
-    experience: '20',
-    rating: 4.7,
-    reviews: 156,
-    location: 'Central Care Clinic, NY',
-    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&q=80',
-    availableOnline: true,
-    availableOffline: true,
-    nextAvailable: 'Today, 4:30 PM',
-    price: 200
-  },
-  {
-    id: 5,
-    name: 'Dr. Lisa Patel',
-    specialty: 'General Practitioner',
-    experience: '5',
-    rating: 4.6,
-    reviews: 67,
-    location: 'Midtown Health, NY',
-    image: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=300&h=300&fit=crop&q=80',
-    availableOnline: true,
-    availableOffline: true,
-    nextAvailable: 'In 30 mins',
-    price: 80
-  }
-];
-
-const SPECIALTIES = ['All', 'Cardiologist', 'Dermatologist', 'Pediatrician', 'Neurologist', 'General Practitioner'];
+const SPECIALTIES = ['All', 'Cardiologist', 'Dermatologist', 'Pediatrician', 'Neurologist', 'General Practitioner', 'Orthopedic'];
 const LOCATIONS = ['All', 'Downtown Clinic, NY', 'Westside Medical, NY', 'Uptown Hospital, NY', 'Central Care Clinic, NY', 'Midtown Health, NY'];
 
 export default function DoctorRecommendation({ onBack }: { onBack: () => void }) {
@@ -88,10 +14,45 @@ export default function DoctorRecommendation({ onBack }: { onBack: () => void })
   const [selectedLocation, setSelectedLocation] = useState('All');
   const [consultationType, setConsultationType] = useState<'All' | 'Online' | 'Offline'>('All');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState<typeof DOCTORS[0] | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<any | null>(null);
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  const fetchDoctors = async () => {
+    try {
+      const res = await fetch('/api/doctors/search', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if(res.ok) {
+        const data = await res.json();
+        const mapped = data.map((d: any) => ({
+           id: d.id,
+           name: d.fullname,
+           specialty: d.specialty || 'General Practitioner',
+           experience: '5+',
+           rating: 4.8,
+           reviews: 120,
+           location: 'Downtown Clinic',
+           image: d.photo_url || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&q=80',
+           availableOnline: true,
+           availableOffline: true,
+           price: 150
+        }));
+        setDoctors(mapped);
+      }
+    } catch(e) {} finally {
+      setLoading(false);
+    }
+  };
 
   const filteredDoctors = useMemo(() => {
-    return DOCTORS.filter(doc => {
+    return doctors.filter(doc => {
       const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             doc.specialty.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesSpecialty = selectedSpecialty === 'All' || doc.specialty === selectedSpecialty;
@@ -103,7 +64,7 @@ export default function DoctorRecommendation({ onBack }: { onBack: () => void })
 
       return matchesSearch && matchesSpecialty && matchesLocation && matchesType;
     });
-  }, [searchQuery, selectedSpecialty, selectedLocation, consultationType]);
+  }, [doctors, searchQuery, selectedSpecialty, selectedLocation, consultationType]);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col items-center">

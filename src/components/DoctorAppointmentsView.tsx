@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { checkCircle2, xCircle, User } from 'lucide-react';
+import { CheckCircle2, XCircle, User } from 'lucide-react';
 
 export default function DoctorAppointmentsView() {
   const [appointments, setAppointments] = useState<any[]>([]);

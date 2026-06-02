@@ -129,6 +129,20 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
   // Auto Scroll container
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Consent modal state
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem('ai_consent_viewed')) {
+      setShowDisclaimer(true);
+    }
+  }, []);
+
+  const handleAcceptDisclaimer = () => {
+    localStorage.setItem('ai_consent_viewed', 'true');
+    setShowDisclaimer(false);
+  };
+
   // Trigger modal triggers if initial screen choice exists
   useEffect(() => {
     if (initialUploadType === 'report') {
@@ -1121,6 +1135,38 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
                 পয়েন্টমেন্ট বুক করুন (Schedule)
               </button>
             </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* AI Disclaimer Modal */}
+      {showDisclaimer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm shadow-2xl">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-100"
+          >
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-bold text-slate-900 text-center mb-6 font-display">Healthcare Disclaimer</h3>
+            
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-8 space-y-3 text-slate-700 text-sm font-medium">
+              <p>{t('আমি বুঝতে পারছি যে "আমার ডাক্তার" একটি AI সহায়ক প্ল্যাটফর্ম।')}</p>
+              <p>{t('AI কোনো চিকিৎসক নয় এবং এটি রোগ নির্ণয় বা চিকিৎসা প্রেসক্রাইব করে না।')}</p>
+              <p>{t('জরুরি অবস্থায় আমি সরাসরি চিকিৎসকের সাথে যোগাযোগ করব।')}</p>
+            </div>
+            
+            <button
+              onClick={handleAcceptDisclaimer}
+              className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+            >
+              Log in / Continue
+            </button>
           </motion.div>
         </div>
       )}

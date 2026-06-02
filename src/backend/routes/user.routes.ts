@@ -23,6 +23,8 @@ const router = Router();
 router.use(sanitizeRequest);
 
 router.post('/login', loginLimiter, validateRequest(loginSchema), UserController.login);
+router.post('/social-login', loginLimiter, UserController.socialLogin);
+router.post('/complete-profile', authenticateToken, UserController.completeProfile);
 router.post('/logout', authenticateToken, UserController.logout);
 router.post('/refresh', UserController.refresh);
 router.get('/me', authenticateToken, UserController.getMe);
@@ -39,6 +41,26 @@ router.patch('/:id/status', authenticateToken, isAdmin, adminApiLimiter, validat
 router.patch('/:id/role', authenticateToken, isAdmin, adminApiLimiter, validateRequest(updateUserRoleSchema), UserController.updateUserRole);
 router.delete('/:id', authenticateToken, isAdmin, adminApiLimiter, UserController.deleteUser);
 router.patch('/:id/reset-password', authenticateToken, isAdmin, adminApiLimiter, validateRequest(resetPasswordSchema), UserController.resetPassword);
+
+const appealSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
+    reason: z.string().min(10)
+  })
+});
+
+import { createAdminNotification } from '../utils/notifications';
+
+router.post('/appeal-ban', forgotPasswordLimiter, validateRequest(appealSchema), async (req: any, res) => {
+  try {
+    const { email, reason } = req.body;
+    // Just send notification to admins
+    await createAdminNotification('BAN_APPEAL', `User ${email} appealed ban. Reason: ${reason}`);
+    res.json({ success: true, message: 'Appeal submitted successfully.' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Doctor Verifications
 router.get('/doctor-verifications', authenticateToken, isAssistantAdmin, adminApiLimiter, async (req: any, res) => {

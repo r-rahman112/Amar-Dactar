@@ -10,7 +10,7 @@ import SymptomModal from './components/SymptomModal';
 import ReportModal from './components/ReportModal';
 import ConsultationWorkspace from './components/ConsultationWorkspace';
 import PatientDashboard from './components/PatientDashboard';
-import MedicalReportUpload from './components/MedicalReportUpload';
+import HealthVault from './components/HealthVault';
 import DoctorRecommendation from './components/DoctorRecommendation';
 import AuthUI from './components/AuthUI';
 import AdminDashboard from './components/AdminDashboard';
@@ -18,13 +18,16 @@ import DoctorDashboard from './components/DoctorDashboard';
 import PaidDoctorChat from './components/PaidDoctorChat';
 import { useAuth } from './contexts/AuthContext';
 
+import PatientRegistration from './components/PatientRegistration';
+
 export default function App() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const [view, setView] = useState<'landing' | 'consultation' | 'dashboard' | 'upload' | 'doctors' | 'auth' | 'admin' | 'doctorPortal' | 'doctorChat'>('landing');
   const [initialUploadType, setInitialUploadType] = useState<'symptom' | 'report' | null>(null);
   const [isSymptomOpen, setIsSymptomOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [doctorActiveChatId, setDoctorActiveChatId] = useState<string | null>(null);
+  const [activePatientId, setActivePatientId] = useState<string | null>(null);
 
   const handleStartConsultation = (type?: 'symptom' | 'report') => {
     if (!isAuthenticated) {
@@ -69,8 +72,9 @@ export default function App() {
      return (
        <DoctorDashboard 
          onLogout={() => setView('landing')}
-         onOpenConsultation={(sessionId) => {
+         onOpenConsultation={(sessionId, patientId) => {
            setDoctorActiveChatId(sessionId);
+           setActivePatientId(patientId || null);
            setView('doctorChat');
          }}
        />
@@ -83,6 +87,7 @@ export default function App() {
           <PaidDoctorChat 
             sessionId={doctorActiveChatId} 
             doctor={{ id: user?.id || 'doc-1', fullName: 'You', specialty: 'Doctor', photoUrl: '', bmdcRegistration: '', availableHours: '', availableStatus: '', consultationFee: 0, degree: '', experience: '', hospitalAffiliation: '', ratings: '', reviews: 0 }} 
+            patientId={activePatientId || undefined}
             onExit={() => setView('doctorPortal')} 
           />
         </div>
@@ -95,6 +100,21 @@ export default function App() {
         onSuccess={() => handleOpenDashboard()}
         onBack={() => setView('landing')}
       />
+    );
+  }
+
+  const needsProfileCompletion = isAuthenticated && user?.role === 'user' && !user?.profileCompleted;
+
+  if (needsProfileCompletion && view !== 'landing') {
+    return (
+       <div className="bg-slate-50 min-h-screen py-12">
+         <PatientRegistration 
+            isCompletingProfile={true} 
+            initialStep={2} 
+            onSuccess={handleOpenDashboard} 
+            onLoginClick={() => logout()} 
+         />
+       </div>
     );
   }
 
@@ -126,7 +146,7 @@ export default function App() {
   if (view === 'upload') {
     if (!isAuthenticated) return <AuthUI onSuccess={() => setView('upload')} onBack={() => setView('landing')} />;
     return (
-      <MedicalReportUpload onBack={() => setView('dashboard')} />
+      <HealthVault onBack={() => setView('dashboard')} />
     );
   }
 

@@ -25,7 +25,11 @@ export default function DoctorScheduleManager() {
       if (res.ok) {
         const data = await res.json();
         if (data) {
-          setSchedule(data);
+          setSchedule({
+            ...data,
+            available_days: typeof data.available_days === 'string' ? JSON.parse(data.available_days) : (data.available_days || []),
+            blocked_dates: typeof data.blocked_dates === 'string' ? JSON.parse(data.blocked_dates) : (data.blocked_dates || [])
+          });
         }
       }
     } catch(e) {} finally {

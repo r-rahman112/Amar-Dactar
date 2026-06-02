@@ -2,18 +2,44 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, ArrowLeft, Check, Eye, EyeOff, User, Mail, Phone, Lock, Activity, AlertCircle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, Eye, EyeOff, User, Mail, Phone, Lock, Activity, AlertCircle, ShieldCheck } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import { z } from 'zod';
+
+const step1Schema = z.object({
+  fullName: z.string().min(1, 'Full Name is required'),
+  email: z.string().email('Please enter a valid email address'),
+  mobile: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, 'Please enter a valid mobile number (e.g., 01xxxxxxxxx)'),
+  password: z.string().min(8, 'Password must be at least 8 characters long'),
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ['confirmPassword']
+});
+
+const step2Schema = z.object({
+  mobile: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, 'Please enter a valid mobile number (e.g., 01xxxxxxxxx)').optional(),
+  dob: z.string().min(1, 'Date of Birth is required'),
+  gender: z.string().min(1, 'Gender is required'),
+  address: z.string().min(1, 'Address is required')
+});
+
+const step4Schema = z.object({
+  emgName: z.string().min(1, 'Emergency Contact Name is required'),
+  emgMobile: z.string().min(1, 'Emergency Contact Mobile is required'),
+});
 
 interface PatientRegistrationProps {
   onSuccess: () => void;
   onLoginClick: () => void;
+  isCompletingProfile?: boolean;
+  initialStep?: number;
 }
 
-export default function PatientRegistration({ onSuccess, onLoginClick }: PatientRegistrationProps) {
+export default function PatientRegistration({ onSuccess, onLoginClick, isCompletingProfile, initialStep }: PatientRegistrationProps) {
   const { t } = useTranslation();
   const { login } = useAuth();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(initialStep || 1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +57,7 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
     dob: '',
     gender: '',
     bloodGroup: '',
+    address: '',
     height: '',
     weight: '',
     
@@ -51,7 +78,8 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
     familyDisease: '',
     smokingStatus: '',
     alcoholStatus: '',
-    mentalHealth: ''
+    mentalHealth: '',
+    hasAcceptedConsent: false
   });
 
   // Derived states
@@ -139,31 +167,41 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
   const handleNextStep = () => {
     setErrorMsg(null);
     if (step === 1) {
-      if (!formData.fullName || !formData.mobile || !formData.email || !formData.password || !formData.confirmPassword) {
-        setErrorMsg(t('Please fill all required fields.'));
-        return;
-      }
-      if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-        setErrorMsg(t('Please enter a valid email address.'));
-        return;
-      }
-      if (!/^(?:\+88|88)?(01[3-9]\d{8})$/.test(formData.mobile)) {
-        setErrorMsg(t('Please enter a valid mobile number (e.g., 01xxxxxxxxx).'));
-        return;
-      }
-      if (passStrength < 5) {
-         setErrorMsg(t('Password must meet all requirements.'));
-         return;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        setErrorMsg(t('Passwords do not match.'));
-        return;
+      try {
+        step1Schema.parse(formData);
+        if (passStrength < 5) {
+           setErrorMsg(t('Password must meet all requirements.'));
+           return;
+        }
+      } catch (err: any) {
+        if (err instanceof z.ZodError) {
+          setErrorMsg(t(err.issues[0].message));
+          return;
+        }
       }
     }
     if (step === 2) {
-      if (!formData.dob || !formData.gender || !formData.emgName || !formData.emgMobile) {
-         setErrorMsg(t('Please fill out basic info and emergency contact.'));
-         return;
+      try {
+        const payload = {
+          ...formData,
+          mobile: isCompletingProfile ? formData.mobile : undefined
+        };
+        step2Schema.parse(payload);
+      } catch (err: any) {
+        if (err instanceof z.ZodError) {
+          setErrorMsg(t(err.issues[0].message));
+          return;
+        }
+      }
+    }
+    if (step === 4) {
+      try {
+        step4Schema.parse(formData);
+      } catch (err: any) {
+        if (err instanceof z.ZodError) {
+          setErrorMsg(t(err.issues[0].message));
+          return;
+        }
       }
     }
     setStep(step + 1);
@@ -176,6 +214,10 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
 
   const handleSubmit = async () => {
     setErrorMsg(null);
+    if (!formData.hasAcceptedConsent) {
+       setErrorMsg(t('You must accept the healthcare disclaimer to create an account.'));
+       return;
+    }
     setLoading(true);
 
     try {
@@ -185,6 +227,7 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
         dob: formData.dob,
         gender: formData.gender,
         bloodGroup: formData.bloodGroup,
+        address: formData.address,
         height: formData.height,
         weight: formData.weight,
         emergencyContact: {
@@ -208,34 +251,50 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
         }
       };
 
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          fullName: formData.fullName, 
-          email: formData.email, 
-          password: formData.password, 
-          mobile: formData.mobile,
-          role: 'user',
-          profile 
-        })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Registration failed');
-      
-      // Auto-login (since we don't have direct mock login without generating token properly properly, we will just call normal login endpoint)
-      const loginRes = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, password: formData.password })
-      });
-      const loginData = await loginRes.json();
-      
-      if (loginRes.ok) {
-         login(loginData.user);
-         onSuccess();
+      if (isCompletingProfile) {
+        const res = await fetch('/api/users/complete-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            mobile: formData.mobile,
+            profile 
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Profile completion failed');
+        login(data.user);
+        onSuccess();
       } else {
-         onSuccess(); // fallback
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            fullName: formData.fullName, 
+            email: formData.email, 
+            password: formData.password, 
+            mobile: formData.mobile,
+            role: 'user',
+            hasAcceptedConsent: formData.hasAcceptedConsent,
+            profile 
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Registration failed');
+        
+        // Auto-login
+        const loginRes = await fetch('/api/users/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email, password: formData.password })
+        });
+        const loginData = await loginRes.json();
+        
+        if (loginRes.ok) {
+           login(loginData.user);
+           onSuccess();
+        } else {
+           onSuccess(); // fallback
+        }
       }
 
     } catch (err: any) {
@@ -246,7 +305,7 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
   };
 
 
-  const progress = (step / 4) * 100;
+  const progress = (step / 5) * 100;
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col items-center relative">
@@ -265,7 +324,9 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
             <ArrowRight className="w-4 h-4 text-slate-300" />
             <span className={step >= 3 ? 'text-blue-600' : 'text-slate-400'}>{t('3. Medical Info')}</span>
             <ArrowRight className="w-4 h-4 text-slate-300" />
-            <span className={step === 4 ? 'text-blue-600' : 'text-slate-400'}>{t('4. Review')}</span>
+            <span className={step >= 4 ? 'text-blue-600' : 'text-slate-400'}>{t('4. Emergency')}</span>
+            <ArrowRight className="w-4 h-4 text-slate-300" />
+            <span className={step === 5 ? 'text-blue-600' : 'text-slate-400'}>{t('5. Review')}</span>
          </div>
       </div>
 
@@ -352,7 +413,6 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
                     <input type={showPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder={t("Re-enter password")} className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium tracking-wide" />
                   </div>
                 </div>
-
               </motion.div>
             )}
 
@@ -365,6 +425,12 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                  {isCompletingProfile && (
+                    <div className="col-span-1 md:col-span-2">
+                       <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Your Mobile Number')}<span className="text-red-500">*</span></label>
+                       <input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="01XXX-XXXXXX" className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium" />
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Date of Birth')}<span className="text-red-500">*</span></label>
                     <input type="date" name="dob" value={formData.dob} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-medium" />
@@ -401,6 +467,10 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
                        <option value="O-">O-</option>
                     </select>
                   </div>
+                  <div className="col-span-1 md:col-span-2 mt-4">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Address')}<span className="text-red-500">*</span></label>
+                    <textarea name="address" rows={2} value={formData.address} onChange={handleChange} placeholder={t('Enter your full address')} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl resize-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-medium"></textarea>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-blue-50/50 rounded-2xl border border-blue-100">
@@ -422,25 +492,6 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
                     </motion.div>
                   )}
                 </div>
-
-                <div className="mt-8">
-                    <h3 className="text-lg font-bold text-slate-900 font-display mb-4">{t('Emergency Contact')}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Name')}<span className="text-red-500">*</span></label>
-                        <input type="text" name="emgName" value={formData.emgName} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-medium" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Relation')}</label>
-                        <input type="text" name="emgRelation" value={formData.emgRelation} onChange={handleChange} placeholder={t("Father/Mother/Brother")} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-medium" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Mobile')}<span className="text-red-500">*</span></label>
-                        <input type="tel" name="emgMobile" value={formData.emgMobile} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-medium" />
-                      </div>
-                    </div>
-                </div>
-
               </motion.div>
             )}
 
@@ -489,14 +540,47 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
                      <label className="block text-sm font-semibold text-slate-700 mb-1">{t('Any drug allergies?')}</label>
                      <textarea name="allergies" rows={2} value={formData.allergies} onChange={handleChange} placeholder={t('Enter medicine names (if any)')} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl resize-none"></textarea>
                    </div>
+                   <div>
+                     <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Do you smoke?')}</label>
+                     <select name="smokingStatus" value={formData.smokingStatus} onChange={handleChange} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
+                        <option value="">{t('Select Status')}</option>
+                        <option value="Non-Smoker">{t('Non-Smoker')}</option>
+                        <option value="Occasional Smoker">{t('Occasional Smoker')}</option>
+                        <option value="Regular Smoker">{t('Regular Smoker')}</option>
+                     </select>
+                   </div>
                 </div>
               </motion.div>
             )}
 
             
-            {/* STEP 4: REVIEW */}
+            {/* STEP 4: EMERGENCY */}
             {step === 4 && (
-              <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+              <motion.div key="step4_emg" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-900 font-display">{t('Emergency Contact')}</h2>
+                    <p className="text-slate-500 text-sm mt-1">{t('Please provide a contact for emergencies.')}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-5 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Name')}<span className="text-red-500">*</span></label>
+                    <input type="text" name="emgName" value={formData.emgName} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Relation')}</label>
+                    <input type="text" name="emgRelation" value={formData.emgRelation} onChange={handleChange} placeholder={t("Father/Mother/Brother")} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Mobile')}<span className="text-red-500">*</span></label>
+                    <input type="tel" name="emgMobile" value={formData.emgMobile} onChange={handleChange} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-medium" />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* STEP 5: REVIEW */}
+            {step === 5 && (
+              <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 font-display">{t('Review')}</h2>
                     <p className="text-slate-500 text-sm mt-1">{t('Please verify and confirm your provided information.')}</p>
@@ -534,6 +618,21 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
                   <Check className="w-5 h-5 shrink-0 mt-0.5" />
                   <p className="text-sm font-medium">{t('I certify that all provided information is true to my knowledge and correct for medical usage.')}</p>
                 </div>
+                
+                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-200 mt-4 flex items-start gap-3">
+                   <input
+                     type="checkbox"
+                     id="consentCheckbox"
+                     className="mt-1 w-5 h-5 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                     checked={formData.hasAcceptedConsent}
+                     onChange={(e) => setFormData({ ...formData, hasAcceptedConsent: e.target.checked })}
+                   />
+                   <label htmlFor="consentCheckbox" className="text-sm font-medium text-slate-800 cursor-pointer">
+                     <p className="mb-1">{t('আমি বুঝতে পারছি যে "আমার ডাক্তার" একটি AI সহায়ক প্ল্যাটফর্ম।')}</p>
+                     <p className="mb-1">{t('AI কোনো চিকিৎসক নয় এবং এটি রোগ নির্ণয় বা চিকিৎসা প্রেসক্রাইব করে না।')}</p>
+                     <p>{t('জরুরি অবস্থায় আমি সরাসরি চিকিৎসকের সাথে যোগাযোগ করব।')}</p>
+                   </label>
+                </div>
               </motion.div>
             )}
 
@@ -553,7 +652,7 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
               </button>
             )}
 
-            {step < 4 ? (
+            {step < 5 ? (
               <button 
                 type="button" 
                 onClick={handleNextStep} 
@@ -584,7 +683,8 @@ export default function PatientRegistration({ onSuccess, onLoginClick }: Patient
 
         </div>
       </div>
-    </div>
+      </div>
+
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { ShieldCheck, Send, CheckCircle2, AlertCircle, Paperclip, Clock, Lock, Image as ImageIcon, Video, Mic, ArrowLeft } from 'lucide-react';
+import HealthVault from './HealthVault';
+import { ShieldCheck, Send, CheckCircle2, AlertCircle, Paperclip, Clock, Lock, Image as ImageIcon, Video, Mic, ArrowLeft, FolderHeart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DoctorInfo } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,6 +10,7 @@ interface PaidDoctorChatProps {
   sessionId: string;
   doctor: DoctorInfo;
   onExit: () => void;
+  patientId?: string;
 }
 
 interface ChatMessage {
@@ -20,7 +22,7 @@ interface ChatMessage {
   attachmentUrl?: string | null;
 }
 
-export default function PaidDoctorChat({ sessionId, doctor, onExit }: PaidDoctorChatProps) {
+export default function PaidDoctorChat({ sessionId, doctor, onExit, patientId }: PaidDoctorChatProps) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -28,6 +30,7 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit }: PaidDoctor
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [myUserId, setMyUserId] = useState<string>('');
+  const [showVault, setShowVault] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -128,6 +131,12 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit }: PaidDoctor
          </div>
          
          <div className="flex items-center gap-3">
+           {user?.role === 'DOCTOR' && patientId && !isLocked && (
+             <button onClick={() => setShowVault(true)} className="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-full transition-colors flex items-center gap-2 px-4 shadow-sm" title="Patient Vault">
+               <FolderHeart className="w-4 h-4" />
+               <span className="text-xs font-bold hidden sm:block">Patient Vault</span>
+             </button>
+           )}
            <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors hidden sm:block">
              <Video className="w-4 h-4" />
            </button>
@@ -140,6 +149,12 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit }: PaidDoctor
            </div>
          </div>
       </div>
+
+      {showVault && (
+        <div className="fixed inset-0 z-50 bg-white">
+           <HealthVault onBack={() => setShowVault(false)} userRole="DOCTOR" patientId={patientId} />
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto p-4 sm:p-6 space-y-4">
         {messages.length === 0 && !isLocked && (

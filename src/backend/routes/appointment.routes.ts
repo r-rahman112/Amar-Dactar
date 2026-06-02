@@ -4,6 +4,7 @@ import { authenticateToken, isDoctor } from '../middleware/auth';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import { validateRequest } from '../middleware/validation';
+import { createNotification } from '../utils/notifications';
 
 const router = Router();
 
@@ -86,10 +87,7 @@ router.patch('/:id/status', authenticateToken, isDoctor, validateRequest(updateS
     await query('UPDATE appointments SET status = $1 WHERE id = $2', [status, id]);
     
     // Send Notification to Patient
-    await query(`
-      INSERT INTO notifications (id, user_id, type, message)
-      VALUES ($1, $2, $3, $4)
-    `, [uuidv4(), appt.patient_id, 'APPOINTMENT_UPDATE', `Your appointment on ${appt.date} at ${appt.start_time} has been ${status.toLowerCase()}.`]);
+    await createNotification(appt.patient_id, 'APPOINTMENT_UPDATE', `Your appointment on ${appt.date} at ${appt.start_time} has been ${status.toLowerCase()}.`);
     
     res.json({ success: true });
   } catch (err: any) {
@@ -169,37 +167,12 @@ router.post('/book', authenticateToken, validateRequest(bookApptSchema), async (
     `, [apptId, doctor_id, patientId, patientName, date, start_time, end_time, 'Pending']);
     
     // Notification to Doctor
-    await query(`
-      INSERT INTO notifications (id, user_id, type, message)
-      VALUES ($1, $2, $3, $4)
-    `, [uuidv4(), doctor_id, 'NEW_APPOINTMENT', `New appointment request from ${patientName} on ${date} at ${start_time}.`]);
+    await createNotification(doctor_id, 'NEW_APPOINTMENT', `New appointment request from ${patientName} on ${date} at ${start_time}.`);
     
     // Notification to Patient
-    await query(`
-      INSERT INTO notifications (id, user_id, type, message)
-      VALUES ($1, $2, $3, $4)
-    `, [uuidv4(), patientId, 'APPOINTMENT_REQUESTED', `Your appointment request with doctor on ${date} at ${start_time} has been submitted.`]);
+    await createNotification(patientId, 'APPOINTMENT_REQUESTED', `Your appointment request with doctor on ${date} at ${start_time} has been submitted.`);
     
     res.json({ success: true, appointmentId: apptId });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Get user notifications
-router.get('/notifications', authenticateToken, async (req: any, res) => {
-  try {
-    const result = await query('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50', [req.user.id]);
-    res.json(result.rows);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.post('/notifications/read', authenticateToken, async (req: any, res) => {
-  try {
-    await query('UPDATE notifications SET is_read = true WHERE user_id = $1', [req.user.id]);
-    res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

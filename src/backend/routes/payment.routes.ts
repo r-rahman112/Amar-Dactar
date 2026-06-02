@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { validateRequest } from '../middleware/validation';
 import { sanitizeRequest } from '../middleware/sanitization';
 import { z } from 'zod';
+import { createNotification, createAdminNotification } from '../utils/notifications';
 
 const router = Router();
 router.use(sanitizeRequest);
@@ -37,6 +38,7 @@ router.post('/initiate', authenticateToken, validateRequest(initiatePaymentSchem
     const patientId = req.user.id;
 
     if (!packageFees[packageMinutes]) {
+      await createAdminNotification('PAYMENT_ISSUE', `Invalid package minutes (${packageMinutes}) requested by user ${req.user.id}`);
       return res.status(400).json({ error: 'Invalid package minutes' });
     }
 
@@ -76,6 +78,10 @@ router.post('/complete', authenticateToken, validateRequest(completePaymentSchem
       `UPDATE paid_sessions SET payment_status = $1, status = $2, start_time = $3 WHERE id = $4`,
       ['paid', 'active', now, sessionId]
     );
+
+    const session = sessionRes.rows[0];
+    await createNotification(req.user.id, 'PAYMENT_SUCCESS', `Your payment of ৳${session.amount} for consultation was successful.`);
+    await createNotification(session.doctor_id, 'NEW_CONSULTATION', `New consultation requested inside instant chat.`);
 
     res.json({ success: true, message: 'Payment completed successfully', sessionId });
   } catch (error: any) {

@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Calendar as CalendarIcon, Clock, Video, MapPin, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 
 interface Doctor {
-  id: number;
+  id: string;
   name: string;
   specialty: string;
   image: string;
@@ -19,35 +19,155 @@ interface AppointmentBookingProps {
   onClose: () => void;
 }
 
-const AVAILABLE_SLOTS = [
-  '09:00 AM', '09:30 AM', '10:00 AM', '11:00 AM',
-  '01:00 PM', '01:30 PM', '02:30 PM', '03:00 PM', '04:30 PM'
-];
-
 export default function AppointmentBooking({ doctor, isOpen, onClose }: AppointmentBookingProps) {
   const { t } = useTranslation();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [visitType, setVisitType] = useState<'online' | 'offline' | null>(null);
+  
+  const [schedule, setSchedule] = useState<any>(null);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(true);
+  const [bookingFailed, setBookingFailed] = useState<string | null>(null);
 
-  // Simple calendar generation
-  const today = new Date();
-  const next7Days = Array.from({ length: 14 }).map((_, i) => {
-    const d = new Date();
-    d.setDate(today.getDate() + i);
-    return d;
-  });
+  useEffect(() => {
+    if (doctor && isOpen) {
+      fetchSchedule();
+    }
+  }, [doctor, isOpen]);
+
+  useEffect(() => {
+    if (doctor && selectedDate && isOpen) fetchBooked();
+  }, [doctor, selectedDate, isOpen]);
+
+  const fetchSchedule = async () => {
+    setLoadingSchedule(true);
+    try {
+      const res = await fetch(`/api/appointments/doctor-schedule/${doctor?.id}`, {
+         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) setSchedule(await res.json());
+    } catch(e) {} finally {
+      setLoadingSchedule(false);
+    }
+  };
+
+  const fetchBooked = async () => {
+    if(!selectedDate || !doctor) return;
+    try {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const res = await fetch(`/api/appointments/doctor/${doctor.id}/slots?date=${dateStr}`, {
+         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) setBookedSlots(await res.json());
+    } catch(e) {}
+  };
+
+  const getDayName = (date: Date) => {
+    return date.toLocaleString('en-US', { weekday: 'long' });
+  };
+
+  const upcomingDays = useMemo(() => {
+    return Array.from({ length: 14 }).map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      return d;
+    });
+  }, []);
+
+  const timeSlots = useMemo(() => {
+    if (!schedule || !schedule.start_time) return [];
+    
+    // Check if selected date is in available_days
+    const dayName = getDayName(selectedDate);
+    let isDayAvailable = false;
+    
+    if (schedule.available_days) {
+       let daysArr = [];
+       try { 
+         daysArr = typeof schedule.available_days === 'string' ? JSON.parse(schedule.available_days) : schedule.available_days;
+       } catch (e) {}
+       isDayAvailable = Array.isArray(daysArr) ? daysArr.includes(dayName) : false;
+    }
+
+    if (!isDayAvailable) return [];
+
+    // Check if blocked date
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    if (schedule.blocked_dates) {
+       let blockedArr = [];
+       try { 
+         blockedArr = typeof schedule.blocked_dates === 'string' ? JSON.parse(schedule.blocked_dates) : schedule.blocked_dates;
+       } catch (e) {}
+       if (Array.isArray(blockedArr) && blockedArr.includes(dateStr)) return [];
+    }
+
+    const slots = [];
+    let [h, m] = schedule.start_time.split(':').map(Number);
+    const [eh, em] = schedule.end_time.split(':').map(Number);
+    const dur = schedule.duration_minutes || 30;
+    
+    while (h * 60 + m + dur <= eh * 60 + em) {
+      const st = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      slots.push(st);
+      m += dur;
+      if (m >= 60) {
+        h += Math.floor(m / 60);
+        m = m % 60;
+      }
+    }
+    return slots;
+  }, [schedule, selectedDate]);
+
+  const calculateEndTime = (startTime: string) => {
+    if (!schedule) return startTime;
+    const dur = schedule.duration_minutes || 30;
+    let [h, m] = startTime.split(':').map(Number);
+    m += dur;
+    if (m >= 60) {
+      h += Math.floor(m/60);
+      m = m % 60;
+    }
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  };
 
   const handleClose = () => {
     setStep(1);
     setSelectedTime(null);
     setVisitType(null);
+    setBookingFailed(null);
     onClose();
   };
 
-  const handleConfirm = () => {
-    setStep(3);
+  const handleConfirm = async () => {
+    if(!selectedTime || !doctor) return;
+    setBookingFailed(null);
+    try {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const endTime = calculateEndTime(selectedTime);
+      const res = await fetch('/api/appointments/book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          doctor_id: doctor.id,
+          date: dateStr,
+          start_time: selectedTime,
+          end_time: endTime
+        })
+      });
+      if (res.ok) {
+        setStep(3);
+      } else {
+        const data = await res.json();
+        setBookingFailed(data.error || 'Failed to book slot');
+      }
+    } catch(err: any) {
+      setBookingFailed(err.message || 'Error occurred');
+    }
   };
 
   if (!doctor) return null;
@@ -151,9 +271,9 @@ export default function AppointmentBooking({ doctor, isOpen, onClose }: Appointm
                         </span>
                       </div>
                       <div className="flex gap-2 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                        {next7Days.map((date, idx) => {
+                        {upcomingDays.map((date, idx) => {
                           const isSelected = selectedDate.getDate() === date.getDate() && selectedDate.getMonth() === date.getMonth();
-                          const isToday = date.getDate() === today.getDate() && date.getMonth() === today.getMonth();
+                          const isToday = date.getDate() === new Date().getDate() && date.getMonth() === new Date().getMonth();
                           
                           return (
                             <button
@@ -176,17 +296,27 @@ export default function AppointmentBooking({ doctor, isOpen, onClose }: Appointm
                     {/* Time Selection */}
                     <div>
                       <h4 className="text-sm font-bold text-slate-900 mb-3">{t('Available Slots')}</h4>
-                      <div className="grid grid-cols-3 gap-2">
-                        {AVAILABLE_SLOTS.map((time) => (
-                          <button
-                            key={time}
-                            onClick={() => setSelectedTime(time)}
-                            className={`py-2.5 rounded-xl text-xs font-semibold border transition-all ${selectedTime === time ? 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-200/50' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'}`}
-                          >
-                            {time}
-                          </button>
-                        ))}
-                      </div>
+                      {loadingSchedule ? (
+                        <p className="text-sm text-slate-500">Loading schedule...</p>
+                      ) : timeSlots.length === 0 ? (
+                        <p className="text-sm text-red-500 font-medium">Doctor is not available on this date.</p>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2">
+                          {timeSlots.map((time) => {
+                            const isBooked = bookedSlots.includes(time);
+                            return (
+                              <button
+                                key={time}
+                                onClick={() => setSelectedTime(time)}
+                                disabled={isBooked}
+                                className={`py-2.5 rounded-xl text-xs font-semibold border transition-all ${isBooked ? 'bg-slate-50 border-slate-100 text-slate-400 cursor-not-allowed opacity-50' : selectedTime === time ? 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-200/50' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'}`}
+                              >
+                                {time}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -279,12 +409,19 @@ export default function AppointmentBooking({ doctor, isOpen, onClose }: Appointm
                 </button>
               )}
               {step === 2 && (
-                <button
-                  onClick={handleConfirm}
-                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold transition-all shadow-sm shadow-blue-200 flex items-center justify-center gap-2"
-                >
-                  {t('Confirm Appointment')}
-                </button>
+                <div className="space-y-3">
+                  {bookingFailed && (
+                    <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl font-medium border border-red-100 text-center">
+                      {bookingFailed}
+                    </div>
+                  )}
+                  <button
+                    onClick={handleConfirm}
+                    className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold transition-all shadow-sm shadow-blue-200 flex items-center justify-center gap-2"
+                  >
+                    {t('Confirm Appointment')}
+                  </button>
+                </div>
               )}
               {step === 3 && (
                 <button

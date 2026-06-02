@@ -12,7 +12,7 @@ import DoctorAppointmentsView from './DoctorAppointmentsView';
 
 interface DoctorDashboardProps {
   onLogout: () => void;
-  onOpenConsultation: (sessionId: string) => void;
+  onOpenConsultation: (sessionId: string, patientId?: string) => void;
 }
 
 export default function DoctorDashboard({ onLogout, onOpenConsultation }: DoctorDashboardProps) {
@@ -272,7 +272,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                           <td className="px-6 py-4">
                             {pt.status === 'active' && (
                               <button 
-                                onClick={() => onOpenConsultation(pt.session_id)}
+                                onClick={() => onOpenConsultation(pt.session_id, pt.patient_id)}
                                 className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition-colors"
                               >
                                 Enter Chat

@@ -5,6 +5,7 @@ import { validateRequest } from '../middleware/validation';
 import { sanitizeRequest } from '../middleware/sanitization';
 import { isDoctor } from '../middleware/roles';
 import { z } from 'zod';
+import { createAdminNotification } from '../utils/notifications';
 
 const router = Router();
 
@@ -63,6 +64,9 @@ router.post('/verify/upload', authenticateToken, isDoctor, validateRequest(verif
 
     await query("UPDATE doctors SET verification_status = 'Under Review' WHERE id = $1", [doctorId]);
     
+    // Notify Admin
+    await createAdminNotification('VERIFICATION_REQUEST', `New doctor verification request from ${req.user.fullname || 'a doctor'}.`);
+
     res.json({ success: true, message: 'Verification documents submitted successfully' });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

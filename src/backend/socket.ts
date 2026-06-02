@@ -3,6 +3,7 @@ import { query } from './config/db';
 import jwt from 'jsonwebtoken';
 import cookie from 'cookie';
 import { ENV } from './config/env';
+import { createNotification } from './utils/notifications';
 
 export function setupSocketIO(server: any) {
   const io = new Server(server, {
@@ -59,6 +60,8 @@ export function setupSocketIO(server: any) {
       if (session.status === 'completed' || remainingSecs === 0) {
         if (session.status !== 'completed') {
           await query('UPDATE paid_sessions SET status = $1 WHERE id = $2', ['completed', sessionId]);
+          await createNotification(session.patient_id, 'CONSULTATION_ENDED', 'Your consultation has ended.');
+          await createNotification(session.doctor_id, 'CONSULTATION_ENDED', 'Consultation with patient has ended.');
         }
         socket.emit('session_ended', { sessionId });
       } else {
@@ -81,6 +84,8 @@ export function setupSocketIO(server: any) {
       const now = Math.floor(Date.now() / 1000);
       if (now - session.start_time >= session.package_minutes * 60) {
         await query('UPDATE paid_sessions SET status = $1 WHERE id = $2', ['completed', sessionId]);
+        await createNotification(session.patient_id, 'CONSULTATION_ENDED', 'Your consultation has ended.');
+        await createNotification(session.doctor_id, 'CONSULTATION_ENDED', 'Consultation with patient has ended.');
         io.to(`session_${sessionId}`).emit('session_ended', { sessionId });
         return;
       }
@@ -91,6 +96,13 @@ export function setupSocketIO(server: any) {
         'INSERT INTO chat_messages (id, session_id, sender_id, text, type, attachment_url, timestamp) VALUES ($1, $2, $3, $4, $5, $6, NOW())',
         [msgId, sessionId, userId, text, type, attachmentUrl]
       );
+
+      // Check if it's the doctor sending message to patient
+      if (userId === session.doctor_id) {
+         await createNotification(session.patient_id, 'NEW_MESSAGE', 'You have a new message from the doctor.');
+      } else if (userId === session.patient_id) {
+         await createNotification(session.doctor_id, 'NEW_MESSAGE', 'You have a new message from the patient.');
+      }
 
       const msg = {
         id: msgId,

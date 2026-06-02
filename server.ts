@@ -15,6 +15,7 @@ import paymentRoutes from "./src/backend/routes/payment.routes";
 import appointmentRoutes from "./src/backend/routes/appointment.routes";
 import notificationRoutes from "./src/backend/routes/notification.routes";
 import adminRoutes from "./src/backend/routes/admin.routes";
+import vaultRoutes from "./src/backend/routes/vault.routes";
 import { setupSocketIO } from "./src/backend/socket";
 
 import { validateEnv } from "./src/backend/config/env";
@@ -73,6 +74,7 @@ async function startServer() {
   app.use('/api/appointments', appointmentRoutes);
   app.use('/api/notifications', notificationRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/vault', vaultRoutes);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

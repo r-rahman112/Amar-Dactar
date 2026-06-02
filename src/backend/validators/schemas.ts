@@ -18,6 +18,9 @@ export const signupSchema = z.object({
     fullName: nameSchema,
     mobile: z.string().max(20).optional().nullable(),
     profile: z.record(z.string(), z.any()).optional().nullable(),
+    hasAcceptedConsent: z.boolean().refine(val => val === true, {
+      message: 'You must accept the healthcare disclaimer.',
+    }),
   })
 });
 

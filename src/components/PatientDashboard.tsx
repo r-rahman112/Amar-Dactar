@@ -216,7 +216,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
               className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl text-sm font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer flex-1 sm:flex-none border border-slate-200"
             >
               <Upload className="h-4.5 w-4.5 shrink-0" />
-              <span className="whitespace-nowrap">{t('Upload Report')}</span>
+              <span className="whitespace-nowrap">{t('Health Vault')}</span>
             </button>
             <button
               onClick={onFindDoctor}
@@ -402,7 +402,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
                       <Calendar className="h-4.5 w-4.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900 leading-snug">Consultation with {app.doctorname || 'Doctor'}</h4>
+                      <h4 className="text-xs font-bold text-slate-900 leading-snug">Consultation with {app.doctorname || app.doctorName || 'Doctor'}</h4>
                       <p className="text-[10px] text-slate-500 leading-none mt-0.5">{app.specialty || 'General'}</p>
                     </div>
                   </div>

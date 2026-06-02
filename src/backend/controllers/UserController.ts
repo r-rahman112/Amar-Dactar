@@ -26,6 +26,15 @@ const initDB = async () => {
     try { await query("ALTER TABLE users ADD COLUMN mobile VARCHAR(50)"); } catch (e) {}
     try { await query("ALTER TABLE users ADD COLUMN profile TEXT"); } catch (e) {}
     try { await query("ALTER TABLE users ADD COLUMN token_version INT DEFAULT 0"); } catch (e) {}
+    try { await query("ALTER TABLE users ADD COLUMN provider VARCHAR(50) DEFAULT 'email'"); } catch (e) {}
+    try { await query("ALTER TABLE users ADD COLUMN profile_completed BOOLEAN DEFAULT true"); } catch (e) {}
+    try { await query("ALTER TABLE users ADD COLUMN medical_profile_completed_at TIMESTAMP"); } catch (e) {}
+    try { await query("ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP"); } catch (e) {}
+    try { await query("ALTER TABLE users ADD COLUMN updated_at TIMESTAMP"); } catch (e) {}
+
+    // Add indexes for optimization (will fail silently if already exists or db doesn't support IF NOT EXISTS on index easily)
+    try { await query("CREATE INDEX idx_users_email ON users(email)"); } catch (e) {}
+    try { await query("CREATE INDEX idx_users_provider ON users(provider)"); } catch (e) {}
 
     await query(`
       CREATE TABLE IF NOT EXISTS token_blacklist (
@@ -201,6 +210,40 @@ const initDB = async () => {
       )
     `);
 
+    await query(`
+      CREATE TABLE IF NOT EXISTS health_vault_records (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        category VARCHAR(100),
+        file_url TEXT NOT NULL,
+        mimetype VARCHAR(100),
+        size INTEGER,
+        is_encrypted BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS consents (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        ip_address VARCHAR(255),
+        consent_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Demo admin account
+    const adminCheck = await query("SELECT id FROM users WHERE email = $1", ["coding.shawon112@gmail.com"]);
+    if (adminCheck.rowCount === 0) {
+       const hash = await bcrypt.hash("Admin112", 10);
+       await query(
+         "INSERT INTO users (id, fullName, email, password, role, profile_completed) VALUES ($1, $2, $3, $4, $5, true)",
+         [uuidv4(), "Admin User", "coding.shawon112@gmail.com", hash, "admin"]
+       );
+       console.log("Demo Admin Account Seeded: coding.shawon112@gmail.com / Admin112");
+    }
+
   } catch (err) {
     console.error("DB Init Error:", err);
   }
@@ -260,14 +303,24 @@ export class UserController {
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
-      res.json({ user: { id: user.id, email: user.email, role: user.role, fullName: user.fullname || user.full_name } });
+      await query('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
+
+      res.json({ user: { id: user.id, email: user.email, role: user.role, fullName: user.fullname || user.full_name, profileCompleted: user.profile_completed } });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
   }
 
   static async getMe(req: AuthRequest, res: Response) {
-    res.json({ user: req.user });
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const result = await query('SELECT id, fullName, email, role, profile_completed FROM users WHERE id = $1', [req.user.id]);
+      if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+      const dbUser = result.rows[0];
+      res.json({ user: { id: dbUser.id, fullName: dbUser.fullname || dbUser.fullName, email: dbUser.email, role: dbUser.role, profileCompleted: dbUser.profile_completed } });
+    } catch(e) {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
   }
 
   static async logout(req: AuthRequest, res: Response) {
@@ -312,7 +365,7 @@ export class UserController {
         maxAge: 15 * 60 * 1000
       });
 
-      res.json({ success: true, user: { id: user.id, email: user.email, role: user.role, fullName: user.fullname || user.full_name } });
+      res.json({ success: true, user: { id: user.id, email: user.email, role: user.role, fullName: user.fullname || user.full_name, profileCompleted: user.profile_completed } });
     } catch (e) {
       res.clearCookie('accessToken');
       res.clearCookie('refreshToken');
@@ -331,7 +384,7 @@ export class UserController {
 
   static async createUser(req: AuthRequest, res: Response) {
     try {
-      const { fullName, email, password, mobile, profile } = req.body;
+      const { fullName, email, password, mobile, profile, hasAcceptedConsent } = req.body;
       const role = 'user'; // Force role to user for public registrations
       
       const hash = await bcrypt.hash(password, 10);
@@ -342,6 +395,13 @@ export class UserController {
         'INSERT INTO users (id, fullName, email, password, role, mobile, profile) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [id, fullName, email, hash, role, mobile || null, profileString]
       );
+      
+      const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+      await query(
+        'INSERT INTO consents (id, user_id, ip_address) VALUES ($1, $2, $3)',
+        [uuidv4(), id, ipAddress]
+      );
+
       res.json({ success: true, id });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -497,6 +557,130 @@ export class UserController {
 
       res.json({ success: true });
     } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  }
+
+  static async socialLogin(req: Request, res: Response) {
+    try {
+      const { uid, email, displayName, photoURL, hasAcceptedConsent, provider } = req.body;
+      if (!uid || !email || !provider) {
+        return res.status(400).json({ error: 'Missing required Social Auth fields' });
+      }
+
+      let result = await query('SELECT * FROM users WHERE email = $1', [email]);
+      let user = result.rows[0];
+      const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+
+      if (!user) {
+        if (!hasAcceptedConsent) {
+           return res.json({ action: 'REQUIRES_CONSENT' });
+        }
+        // Create new user for social auth
+        const id = uuidv4();
+        // Generate a random password since they use social login
+        const randomPassword = uuidv4() + uuidv4();
+        const hash = await bcrypt.hash(randomPassword, 10);
+        const profile = photoURL ? JSON.stringify({ avatar: photoURL }) : null;
+        
+        await query(
+          'INSERT INTO users (id, fullName, email, password, role, profile, provider, profile_completed, last_login_at, createdat) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
+          [id, displayName || `${provider} User`, email, hash, 'user', profile, provider, false]
+        );
+        
+        await query(
+          'INSERT INTO consents (id, user_id, ip_address) VALUES ($1, $2, $3)',
+          [uuidv4(), id, ipAddress]
+        );
+
+        result = await query('SELECT * FROM users WHERE id = $1', [id]);
+        user = result.rows[0];
+      } else {
+        // Update user
+        const updates = [];
+        const params = [];
+        let paramIdx = 1;
+
+        if (!user.profile && photoURL) {
+           updates.push(`profile = $${paramIdx++}`);
+           params.push(JSON.stringify({ avatar: photoURL }));
+        }
+        if (displayName && (!user.fullname || user.fullname === 'google User')) {
+           updates.push(`fullName = $${paramIdx++}`);
+           params.push(displayName);
+        }
+
+        updates.push(`provider = $${paramIdx++}`);
+        params.push(provider);
+        
+        updates.push(`last_login_at = CURRENT_TIMESTAMP`);
+        
+        if (updates.length > 0) {
+           params.push(user.id);
+           await query(`UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIdx}`, params);
+        }
+        
+        result = await query('SELECT * FROM users WHERE id = $1', [user.id]);
+        user = result.rows[0];
+      }
+
+      if (user.status === 'banned') return res.status(403).json({ error: 'Account banned' });
+      if (user.status === 'suspended') return res.status(403).json({ error: 'Account suspended' });
+
+      user.profileCompleted = user.profile_completed;
+
+      const accessToken = jwt.sign(
+        { id: user.id, email: user.email, role: user.role, status: user.status, token_version: user.token_version }, 
+        ENV.JWT_SECRET, 
+        { expiresIn: '15m' }
+      );
+
+      const refreshToken = jwt.sign(
+        { id: user.id }, 
+        ENV.JWT_SECRET, 
+        { expiresIn: '7d' }
+      );
+
+      // Set cookies
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutes
+      });
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      res.json({ success: true, user: { id: user.id, email: user.email, role: user.role, fullName: user.fullname || user.full_name, profileCompleted: user.profile_completed } });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  }
+
+  static async completeProfile(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+      const { mobile, profile } = req.body;
+      
+      if (!profile || !profile.dob || !profile.gender) {
+         return res.status(400).json({ error: 'Missing required profile data.' });
+      }
+
+      await query(
+        'UPDATE users SET mobile = $1, profile = $2, profile_completed = true, medical_profile_completed_at = CURRENT_TIMESTAMP WHERE id = $3',
+        [mobile || null, JSON.stringify(profile), req.user.id]
+      );
+      
+      const result = await query('SELECT * FROM users WHERE id = $1', [req.user.id]);
+      const updatedUser = result.rows[0];
+
+      res.json({ success: true, user: { id: updatedUser.id, email: updatedUser.email, role: updatedUser.role, fullName: updatedUser.fullname || updatedUser.full_name, profileCompleted: true } });
+    } catch(e: any) {
       res.status(500).json({ error: e.message });
     }
   }
