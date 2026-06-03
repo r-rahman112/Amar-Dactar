@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, MessageSquare, HeadphonesIcon, HelpCircle, AlertCircle, CheckCircle2, ShieldCheck, Mail, Send } from 'lucide-react';
+import { ArrowLeft, MessageSquare, HeadphonesIcon, HelpCircle, AlertCircle, CheckCircle2, ShieldCheck, Send } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import BrandLogo from './BrandLogo';
 import emailjs from '@emailjs/browser';
@@ -115,18 +115,11 @@ export default function Support({ onBack }: SupportProps) {
     <div className="min-h-[100dvh] bg-slate-50 flex flex-col relative font-sans">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <button
-            onClick={onBack}
-            className="flex items-center text-slate-500 hover:text-blue-600 transition-colors font-medium text-sm group"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1.5 group-hover:-translate-x-1 transition-transform" />
-            {t('Back to Home')}
-          </button>
+          <div className="w-[100px]"></div>
           
-          <div className="flex-1 flex justify-center">
+          <button onClick={onBack} className="flex-1 flex justify-center cursor-pointer hover:opacity-80 transition-opacity focus:outline-none" aria-label="Go to home">
             <BrandLogo />
-          </div>
+          </button>
           
           <div className="w-[100px]"></div>
         </div>
@@ -323,14 +316,6 @@ export default function Support({ onBack }: SupportProps) {
                   </li>
                 ))}
               </ul>
-              
-              <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center bg-slate-50 rounded-2xl py-4 flex-col text-center shadow-inner border border-slate-100/50">
-                <p className="text-sm font-medium text-slate-500 mb-1">{isBengali ? 'সরাসরি ইমেইল করুন' : 'Email directly at'}</p>
-                <div className="flex items-center text-blue-600 font-bold hover:underline cursor-pointer group">
-                  <Mail className="w-4 h-4 mr-2 group-hover:animate-bounce" />
-                  support@amardaktar.com
-                </div>
-              </div>
             </div>
 
           </div>

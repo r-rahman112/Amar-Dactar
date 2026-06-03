@@ -16,17 +16,11 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
       {/* Top Navigation / Header area identical to internal pages */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <button
-            onClick={onBack}
-            className="flex items-center text-slate-500 hover:text-blue-600 transition-colors font-medium text-sm group"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1.5 group-hover:-translate-x-1 transition-transform" />
-            {t('Back to Home')}
-          </button>
+          <div className="w-[100px]"></div>
           
-          <div className="flex-1 flex justify-center">
+          <button onClick={onBack} className="flex-1 flex justify-center cursor-pointer hover:opacity-80 transition-opacity focus:outline-none" aria-label="Go to home">
             <BrandLogo />
-          </div>
+          </button>
           
           <div className="w-[100px]"></div> {/* Spacer for centering */}
         </div>
