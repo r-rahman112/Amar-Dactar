@@ -2,6 +2,7 @@ import { Play, Upload, MessageSquare, ShieldCheck, CheckCircle2, ChevronRight, A
 import { motion } from 'motion/react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import heroImage from '../assets/hero.png';
 interface HeroProps {
   onStartConsultation: () => void;
@@ -11,6 +12,7 @@ interface HeroProps {
 
 export default function Hero({ onStartConsultation, onUploadReport, onOpenDashboard }: HeroProps) {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
   
   // Mobile Check
   const [isDesktop, setIsDesktop] = useState(true);
@@ -130,15 +132,17 @@ export default function Hero({ onStartConsultation, onUploadReport, onOpenDashbo
               transition={{ duration: 0.5, delay: 0.5, ease: "easeOut" }}
               className="flex flex-col gap-2 pt-1 w-full"
             >
-              <div className="flex flex-row items-baseline justify-center md:justify-start gap-1.5 mt-2 md:mt-0 pt-1 w-full">
-                <span className="text-slate-500 text-[14px] md:text-sm">{t('Already have Account?')}</span>
-                <button
-                  onClick={onOpenDashboard}
-                  className="text-blue-600 font-semibold text-[15px] md:text-sm hover:text-blue-700 md:underline md:underline-offset-4 cursor-pointer"
-                >
-                  {t('Sign In →')}
-                </button>
-              </div>
+              {!isAuthenticated && (
+                <div className="flex flex-row items-baseline justify-center md:justify-start gap-1.5 mt-2 md:mt-0 pt-1 w-full">
+                  <span className="text-slate-500 text-[14px] md:text-sm">{t('Already have Account?')}</span>
+                  <button
+                    onClick={onOpenDashboard}
+                    className="text-blue-600 font-semibold text-[15px] md:text-sm hover:text-blue-700 md:underline md:underline-offset-4 cursor-pointer"
+                  >
+                    {t('Sign In →')}
+                  </button>
+                </div>
+              )}
 
               {/* Quick HIPAA trust badge below buttons */}
               <div className="flex items-center justify-center md:justify-start space-x-2 text-xs text-slate-400 font-normal mt-2 w-full">

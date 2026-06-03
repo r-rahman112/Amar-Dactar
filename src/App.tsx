@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -25,8 +25,8 @@ import { Toaster } from 'react-hot-toast';
 import PatientRegistration from './components/PatientRegistration';
 
 export default function App() {
-  const { isAuthenticated, user, logout } = useAuth();
-  const [view, setView] = useState<'landing' | 'consultation' | 'dashboard' | 'upload' | 'doctors' | 'auth' | 'admin' | 'doctorPortal' | 'doctorChat' | 'terms' | 'support'>('landing');
+  const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const [view, setView] = useState<'landing' | 'consultation' | 'dashboard' | 'upload' | 'doctors' | 'auth' | 'admin' | 'doctorPortal' | 'doctorChat' | 'terms' | 'support' | 'signup'>('landing');
   const [initialUploadType, setInitialUploadType] = useState<'symptom' | 'report' | null>(null);
   const [isSymptomOpen, setIsSymptomOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
@@ -34,7 +34,34 @@ export default function App() {
   const [activePatientId, setActivePatientId] = useState<string | null>(null);
 
   useEffect(() => {
+    const handlePathname = () => {
+      const path = window.location.pathname;
+      if (path === '/signup') {
+        setView('signup');
+      } else if (path === '/login') {
+        setView('auth');
+      } else if (path === '/dashboard') {
+        setView('dashboard');
+      } else if (path === '/doctor-dashboard') {
+        setView('doctorPortal');
+      } else if (path === '/admin-dashboard') {
+        setView('admin');
+      } else if (path === '/') {
+        setView('landing');
+      }
+    };
+
+    // Initial check
+    handlePathname();
+
+    const handlePopState = () => {
+      handlePathname();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
     const handleNavigateHome = () => {
+      window.history.pushState({}, '', '/');
       setView('landing');
       setInitialUploadType(null);
       setTimeout(() => {
@@ -46,44 +73,90 @@ export default function App() {
     };
 
     window.addEventListener('navigateHome', handleNavigateHome);
-    return () => window.removeEventListener('navigateHome', handleNavigateHome);
+    return () => {
+      window.removeEventListener('navigateHome', handleNavigateHome);
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
 
   const handleStartConsultation = (type?: 'symptom' | 'report') => {
     if (!isAuthenticated) {
-      setView('auth');
+      window.history.pushState({}, '', '/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
       return;
     }
-    setInitialUploadType(type || null);
-    setView('consultation');
+    
+    if (type === 'report') {
+      setView('upload');
+    } else {
+      setInitialUploadType(type || null);
+      setView('consultation');
+    }
   };
 
+  const isAuthenticatedRef = useRef(isAuthenticated);
+  const userRef = useRef(user);
+
+  useEffect(() => {
+    isAuthenticatedRef.current = isAuthenticated;
+    userRef.current = user;
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    // Auto-redirect away from auth pages if already logged in and session is loaded
+    if (!isLoading && isAuthenticated && user) {
+      if (view === 'signup' || view === 'auth' || window.location.pathname === '/signup' || window.location.pathname === '/login') {
+        const isAdm = user.role === 'admin' || user.role === 'superadmin' || user.role === 'assistant_admin';
+        const targetPath = isAdm ? '/admin-dashboard' : (user.role === 'doctor' ? '/doctor-dashboard' : '/dashboard');
+        if (window.location.pathname !== targetPath) {
+          window.history.pushState({}, '', targetPath);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }
+      }
+    }
+  }, [isLoading, isAuthenticated, user, view]);
+
   const handleOpenDashboard = () => {
-    if (!isAuthenticated) {
-      setView('auth');
+    const isAuth = isAuthenticatedRef.current;
+    const currentUser = userRef.current;
+    
+    if (!isAuth) {
+      window.history.pushState({}, '', '/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
       return;
     }
-    if (user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'assistant_admin') {
-      setView('admin');
-    } else if (user?.role === 'doctor') {
-      setView('doctorPortal');
+    if (currentUser?.role === 'admin' || currentUser?.role === 'superadmin' || currentUser?.role === 'assistant_admin') {
+      window.history.pushState({}, '', '/admin-dashboard');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } else if (currentUser?.role === 'doctor') {
+      window.history.pushState({}, '', '/doctor-dashboard');
+      window.dispatchEvent(new PopStateEvent('popstate'));
     } else {
-      setView('dashboard');
+      window.history.pushState({}, '', '/dashboard');
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };
 
   const renderView = () => {
     if (view === 'admin') {
+      if (isLoading) return <div className="h-[100dvh] w-full flex items-center justify-center bg-slate-50"><div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-blue-600 animate-spin"></div></div>;
       if (!isAuthenticated || (user?.role !== 'admin' && user?.role !== 'superadmin' && user?.role !== 'assistant_admin')) {
-        setTimeout(() => setView('auth'), 0);
+        setTimeout(() => {
+          window.history.pushState({}, '', '/login');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }, 0);
         return null;
       }
       return <AdminDashboard onLogout={() => setView('landing')} />;
     }
 
     if (view === 'doctorPortal') {
+       if (isLoading) return <div className="h-[100dvh] w-full flex items-center justify-center bg-slate-50"><div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-blue-600 animate-spin"></div></div>;
        if (!isAuthenticated || user?.role !== 'doctor') {
-         setTimeout(() => setView('auth'), 0);
+         setTimeout(() => {
+           window.history.pushState({}, '', '/login');
+           window.dispatchEvent(new PopStateEvent('popstate'));
+         }, 0);
          return null;
        }
        return (
@@ -111,33 +184,28 @@ export default function App() {
        );
     }
 
-    if (view === 'auth') {
+    if (view === 'auth' || view === 'signup') {
       return (
         <AuthUI 
+          initialView={view === 'signup' ? 'register' : 'login'}
           onSuccess={() => handleOpenDashboard()}
-          onBack={() => setView('landing')}
+          onBack={() => {
+            window.history.pushState({}, '', '/');
+            setView('landing');
+          }}
         />
       );
     }
 
     const needsProfileCompletion = isAuthenticated && user?.role === 'user' && !user?.profileCompleted;
 
-    if (needsProfileCompletion && view !== 'landing') {
-      return (
-         <div className="bg-slate-50 min-h-[100dvh] py-12">
-           <PatientRegistration 
-              isCompletingProfile={true} 
-              initialStep={2} 
-              onSuccess={handleOpenDashboard} 
-              onLoginClick={() => logout()} 
-           />
-         </div>
-      );
-    }
-
     if (view === 'consultation') {
+      if (isLoading) return <div className="h-[100dvh] w-full flex items-center justify-center bg-slate-50"><div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-blue-600 animate-spin"></div></div>;
       if (!isAuthenticated) {
-        setTimeout(() => setView('auth'), 0);
+        setTimeout(() => {
+          window.history.pushState({}, '', '/login');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }, 0);
         return null;
       }
       return (
@@ -152,9 +220,25 @@ export default function App() {
     }
 
     if (view === 'dashboard') {
+      if (isLoading) return <div className="h-[100dvh] w-full flex items-center justify-center bg-slate-50"><div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-blue-600 animate-spin"></div></div>;
+      
       if (!isAuthenticated) {
-        setTimeout(() => setView('auth'), 0);
+        window.history.pushState({}, '', '/login');
+        window.dispatchEvent(new PopStateEvent('popstate'));
         return null;
+      }
+
+      if (needsProfileCompletion) {
+        return (
+           <div className="bg-slate-50 min-h-[100dvh] py-12">
+             <PatientRegistration 
+                isCompletingProfile={true} 
+                initialStep={2} 
+                onSuccess={handleOpenDashboard} 
+                onLoginClick={() => logout()} 
+             />
+           </div>
+        );
       }
       return (
         <PatientDashboard
@@ -167,8 +251,10 @@ export default function App() {
     }
 
     if (view === 'upload') {
+      if (isLoading) return <div className="h-[100dvh] w-full flex items-center justify-center bg-slate-50"><div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-blue-600 animate-spin"></div></div>;
       if (!isAuthenticated) {
-        setTimeout(() => setView('auth'), 0);
+        window.history.pushState({}, '', '/login');
+        window.dispatchEvent(new PopStateEvent('popstate'));
         return null;
       }
       return <HealthVault onBack={() => setView('dashboard')} />;

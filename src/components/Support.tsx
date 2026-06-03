@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ArrowLeft, MessageSquare, HeadphonesIcon, HelpCircle, AlertCircle, CheckCircle2, ShieldCheck, Send } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import BrandLogo from './BrandLogo';
-import emailjs from '@emailjs/browser';
 import toast from 'react-hot-toast';
 import { motion } from 'motion/react';
 
@@ -79,25 +78,39 @@ export default function Support({ onBack }: SupportProps) {
     setErrorStatus(false);
 
     try {
-      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
-      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '';
-      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '';
+      console.log("SUPABASE URL:", import.meta.env.VITE_SUPABASE_URL ? "Loaded" : "Missing");
+      console.log("SUPABASE ANON KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY ? "Loaded" : "Missing");
 
-      if (!serviceId || !templateId || !publicKey) {
-        throw new Error('EmailJS configuration missing');
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        const missingVars = [];
+        if (!import.meta.env.VITE_SUPABASE_URL) missingVars.push('VITE_SUPABASE_URL');
+        if (!import.meta.env.VITE_SUPABASE_ANON_KEY) missingVars.push('VITE_SUPABASE_ANON_KEY');
+        const errorMessage = `Supabase configuration missing: ${missingVars.join(', ')}`;
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
       }
 
-      await emailjs.send(
-        serviceId,
-        templateId,
-        {
-          from_name: formData.name,
-          reply_to: formData.email,
-          subject: formData.subject,
-          message: formData.message,
+      const response = await fetch(`${supabaseUrl}/functions/v1/send-support-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`
         },
-        publicKey
-      );
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to send support email: ${response.status} ${response.statusText} - ${errorText}`);
+      }
 
       setSuccessStatus(true);
       setFormData({ name: '', email: '', subject: '', message: '' });

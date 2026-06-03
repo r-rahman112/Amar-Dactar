@@ -17,10 +17,11 @@ interface AuthUIProps {
   onSuccess: () => void;
   onBack: () => void;
   onAdminAccess?: () => void;
+  initialView?: AuthView;
 }
 
-export default function AuthUI({ onSuccess, onBack, onAdminAccess }: AuthUIProps) {
-  const [view, setView] = useState<AuthView>('login');
+export default function AuthUI({ onSuccess, onBack, onAdminAccess, initialView = 'login' }: AuthUIProps) {
+  const [view, setView] = useState<AuthView>(initialView);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -97,7 +98,7 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess }: AuthUIProps
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to verify OTP');
         // Actually here we would change the password, but since this is just OTP verification:
-        window.toast.success('Password reset OTP verified! You can now reset your password.');
+        toast.success('Password reset OTP verified! You can now reset your password.');
         setView('login');
       }
     } catch (err: any) {

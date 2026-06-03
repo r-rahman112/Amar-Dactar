@@ -183,7 +183,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               </div>
               <div className="hidden sm:block text-sm">
                 <p className="font-semibold text-slate-700 leading-none">{user?.fullName || user?.email?.split('@')[0] || t('Admin')}</p>
-                <p className="text-xs text-slate-500">{getRoleDisplay(user?.role || 'admin')}</p>
+                <p className="text-xs text-slate-500">{getRoleDisplay(user?.role || 'admin', t)}</p>
               </div>
             </div>
           </div>
