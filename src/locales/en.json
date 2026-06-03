@@ -1,4 +1,6 @@
 {
+  "home": "Home",
+  "features": "Features",
   "Access Patient Dashboard →": "Access Patient Dashboard →",
   "Sign in to your account →": "Sign in to your account →",
   "Sign In": "Sign In",
@@ -228,6 +230,7 @@
   "Physicians Near You": "Physicians Near You",
   "HIPAA Compliant Security": "HIPAA Compliant Security",
   "HIPAA Compliant Standard": "HIPAA Compliant Standard",
+  "HIPAA Compliant": "HIPAA Compliant",
   "Find the right specialist": "Find the right specialist",
   "Search doctors by name, specialty, or condition...": "Search doctors by name, specialty, or condition...",
   "All Locations": "All Locations",

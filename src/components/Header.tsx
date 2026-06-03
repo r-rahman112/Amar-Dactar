@@ -285,8 +285,8 @@ export default function Header({ onStartConsultation, onOpenDashboard }: HeaderP
                 ) : (
                   <>
                     <div className="flex flex-col space-y-2 text-slate-700 font-medium text-[15px]">
-                      <button onClick={() => scrollToSection('home')} className="w-full text-left hover:text-blue-600 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">{t('Home')}</button>
-                      <button onClick={() => scrollToSection('features')} className="w-full text-left hover:text-blue-600 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">{t('Features')}</button>
+                      <button onClick={() => scrollToSection('home')} className="w-full text-left hover:text-blue-600 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">{t('home')}</button>
+                      <button onClick={() => scrollToSection('features')} className="w-full text-left hover:text-blue-600 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">{t('features')}</button>
                       <button onClick={() => scrollToSection('faq')} className="w-full text-left hover:text-blue-600 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">{t('FAQ')}</button>
                     </div>
 

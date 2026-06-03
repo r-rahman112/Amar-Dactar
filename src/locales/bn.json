@@ -1,4 +1,6 @@
 {
+  "home": "হোম",
+  "features": "ফিচারস",
   "Access Patient Dashboard →": "পেশেন্ট ড্যাশবোর্ড অ্যাক্সেস করুন →",
   "Sign in to your account →": "আপনার অ্যাকাউন্টে সাইন ইন করুন →",
   "Sign In": "লগইন",
@@ -228,6 +230,7 @@
   "Physicians Near You": "আপনার কাছের বিশেষজ্ঞ ডাক্তার",
   "HIPAA Compliant Security": "আন্তর্জাতিক মানের নিরাপত্তা ব্যবস্থা",
   "HIPAA Compliant Standard": "আন্তর্জাতিক মানের নিরাপত্তা ব্যবস্থা",
+  "HIPAA Compliant": "HIPAA-সম্মত নিরাপত্তা ব্যবস্থা",
   "Find the right specialist": "সঠিক বিশেষজ্ঞ খুঁজুন",
   "Search doctors by name, specialty, or condition...": "ডাক্তার খুঁজুন নাম, বিশেষজ্ঞতা, বা অবস্থা অনুযায়ী...",
   "All Locations": "সকল স্থান",
