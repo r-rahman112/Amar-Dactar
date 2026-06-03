@@ -45,10 +45,10 @@ export default function Header({ onStartConsultation, onOpenDashboard }: HeaderP
   return (
     <header
       id="header-navigation"
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${
         isScrolled
-          ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-blue-50/80 py-3'
-          : 'bg-transparent py-5'
+          ? 'bg-white/85 backdrop-blur-sm md:backdrop-blur-md shadow-sm border-b border-slate-200/50 py-2 sm:py-2.5'
+          : 'bg-white/95 md:bg-white/50 md:backdrop-blur-sm py-4 sm:py-5 border-b border-slate-100 md:border-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
