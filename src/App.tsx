@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Features from './components/Features';
@@ -16,13 +17,16 @@ import AuthUI from './components/AuthUI';
 import AdminDashboard from './components/AdminDashboard';
 import DoctorDashboard from './components/DoctorDashboard';
 import PaidDoctorChat from './components/PaidDoctorChat';
+import TermsOfService from './components/TermsOfService';
+import Support from './components/Support';
 import { useAuth } from './contexts/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 import PatientRegistration from './components/PatientRegistration';
 
 export default function App() {
   const { isAuthenticated, user, logout } = useAuth();
-  const [view, setView] = useState<'landing' | 'consultation' | 'dashboard' | 'upload' | 'doctors' | 'auth' | 'admin' | 'doctorPortal' | 'doctorChat'>('landing');
+  const [view, setView] = useState<'landing' | 'consultation' | 'dashboard' | 'upload' | 'doctors' | 'auth' | 'admin' | 'doctorPortal' | 'doctorChat' | 'terms' | 'support'>('landing');
   const [initialUploadType, setInitialUploadType] = useState<'symptom' | 'report' | null>(null);
   const [isSymptomOpen, setIsSymptomOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
@@ -68,154 +72,159 @@ export default function App() {
     }
   };
 
-  if (view === 'admin') {
-    if (!isAuthenticated || (user?.role !== 'admin' && user?.role !== 'superadmin' && user?.role !== 'assistant_admin')) {
-      setView('auth');
-      return null;
+  const renderView = () => {
+    if (view === 'admin') {
+      if (!isAuthenticated || (user?.role !== 'admin' && user?.role !== 'superadmin' && user?.role !== 'assistant_admin')) {
+        setTimeout(() => setView('auth'), 0);
+        return null;
+      }
+      return <AdminDashboard onLogout={() => setView('landing')} />;
     }
-    return (
-      <AdminDashboard 
-        onLogout={() => setView('landing')}
-      />
-    );
-  }
 
-  if (view === 'doctorPortal') {
-     if (!isAuthenticated || user?.role !== 'doctor') {
-       setView('auth');
-       return null;
-     }
-     return (
-       <DoctorDashboard 
-         onLogout={() => setView('landing')}
-         onOpenConsultation={(sessionId, patientId) => {
-           setDoctorActiveChatId(sessionId);
-           setActivePatientId(patientId || null);
-           setView('doctorChat');
-         }}
-       />
-     );
-  }
-
-  if (view === 'doctorChat' && doctorActiveChatId) {
-     return (
-        <div className="h-screen w-screen relative bg-slate-50 flex flex-col">
-          <PaidDoctorChat 
-            sessionId={doctorActiveChatId} 
-            doctor={{ id: user?.id || 'doc-1', fullName: 'You', specialty: 'Doctor', photoUrl: '', bmdcRegistration: '', availableHours: '', availableStatus: '', consultationFee: 0, degree: '', experience: '', hospitalAffiliation: '', ratings: '', reviews: 0 }} 
-            patientId={activePatientId || undefined}
-            onExit={() => setView('doctorPortal')} 
-          />
-        </div>
-     );
-  }
-
-  if (view === 'auth') {
-    return (
-      <AuthUI 
-        onSuccess={() => handleOpenDashboard()}
-        onBack={() => setView('landing')}
-      />
-    );
-  }
-
-  const needsProfileCompletion = isAuthenticated && user?.role === 'user' && !user?.profileCompleted;
-
-  if (needsProfileCompletion && view !== 'landing') {
-    return (
-       <div className="bg-slate-50 min-h-screen py-12">
-         <PatientRegistration 
-            isCompletingProfile={true} 
-            initialStep={2} 
-            onSuccess={handleOpenDashboard} 
-            onLoginClick={() => logout()} 
+    if (view === 'doctorPortal') {
+       if (!isAuthenticated || user?.role !== 'doctor') {
+         setTimeout(() => setView('auth'), 0);
+         return null;
+       }
+       return (
+         <DoctorDashboard 
+           onLogout={() => setView('landing')}
+           onOpenConsultation={(sessionId, patientId) => {
+             setDoctorActiveChatId(sessionId);
+             setActivePatientId(patientId || null);
+             setView('doctorChat');
+           }}
          />
-       </div>
-    );
-  }
+       );
+    }
 
-  if (view === 'consultation') {
-    if (!isAuthenticated) return <AuthUI onSuccess={() => setView('consultation')} onBack={() => setView('landing')} />;
+    if (view === 'doctorChat' && doctorActiveChatId) {
+       return (
+          <div className="h-[100dvh] w-full relative bg-slate-50 flex flex-col">
+            <PaidDoctorChat 
+              sessionId={doctorActiveChatId} 
+              doctor={{ id: user?.id || 'doc-1', fullName: 'You', specialty: 'Doctor', photoUrl: '', bmdcRegistration: '', availableHours: '', availableStatus: '', consultationFee: 0, degree: '', experience: '', hospitalAffiliation: '', ratings: '', reviews: 0 }} 
+              patientId={activePatientId || undefined}
+              onExit={() => setView('doctorPortal')} 
+            />
+          </div>
+       );
+    }
+
+    if (view === 'auth') {
+      return (
+        <AuthUI 
+          onSuccess={() => handleOpenDashboard()}
+          onBack={() => setView('landing')}
+        />
+      );
+    }
+
+    const needsProfileCompletion = isAuthenticated && user?.role === 'user' && !user?.profileCompleted;
+
+    if (needsProfileCompletion && view !== 'landing') {
+      return (
+         <div className="bg-slate-50 min-h-[100dvh] py-12">
+           <PatientRegistration 
+              isCompletingProfile={true} 
+              initialStep={2} 
+              onSuccess={handleOpenDashboard} 
+              onLoginClick={() => logout()} 
+           />
+         </div>
+      );
+    }
+
+    if (view === 'consultation') {
+      if (!isAuthenticated) {
+        setTimeout(() => setView('auth'), 0);
+        return null;
+      }
+      return (
+        <ConsultationWorkspace 
+          onBackToHome={() => {
+            setView('landing');
+            setInitialUploadType(null);
+          }}
+          initialUploadType={initialUploadType}
+        />
+      );
+    }
+
+    if (view === 'dashboard') {
+      if (!isAuthenticated) {
+        setTimeout(() => setView('auth'), 0);
+        return null;
+      }
+      return (
+        <PatientDashboard
+          onBackToHome={() => setView('landing')}
+          onStartConsultation={handleStartConsultation}
+          onUploadReport={() => setView('upload')}
+          onFindDoctor={() => setView('doctors')}
+        />
+      );
+    }
+
+    if (view === 'upload') {
+      if (!isAuthenticated) {
+        setTimeout(() => setView('auth'), 0);
+        return null;
+      }
+      return <HealthVault onBack={() => setView('dashboard')} />;
+    }
+
+    if (view === 'doctors') {
+      return <DoctorRecommendation onBack={() => setView('dashboard')} />;
+    }
+
+    if (view === 'terms') {
+      return <TermsOfService onBack={() => setView('landing')} />;
+    }
+
+    if (view === 'support') {
+      return <Support onBack={() => setView('landing')} />;
+    }
+
     return (
-      <ConsultationWorkspace 
-        onBackToHome={() => {
-          setView('landing');
-          setInitialUploadType(null);
-        }}
-        initialUploadType={initialUploadType}
-      />
-    );
-  }
-
-  if (view === 'dashboard') {
-    if (!isAuthenticated) return <AuthUI onSuccess={() => setView('dashboard')} onBack={() => setView('landing')} />;
-    return (
-      <PatientDashboard
-        onBackToHome={() => setView('landing')}
-        onStartConsultation={handleStartConsultation}
-        onUploadReport={() => setView('upload')}
-        onFindDoctor={() => setView('doctors')}
-      />
-    );
-  }
-
-  if (view === 'upload') {
-    if (!isAuthenticated) return <AuthUI onSuccess={() => setView('upload')} onBack={() => setView('landing')} />;
-    return (
-      <HealthVault onBack={() => setView('dashboard')} />
-    );
-  }
-
-  if (view === 'doctors') {
-    return (
-      <DoctorRecommendation onBack={() => setView('dashboard')} />
-    );
-  }
-
-  return (
-    <div className="relative min-h-screen bg-slate-50 text-slate-800 selection:bg-blue-100 selection:text-blue-800 overflow-x-hidden antialiased">
-      {/* Dynamic Header */}
-      <Header 
-        onStartConsultation={() => handleStartConsultation('symptom')} 
-        onOpenDashboard={handleOpenDashboard}
-      />
-
-      {/* Main Sections */}
-      <main>
-        {/* Hero Section */}
-        <Hero 
+      <div className="relative min-h-[100dvh] bg-slate-50 text-slate-800 selection:bg-blue-100 selection:text-blue-800 antialiased">
+        <Header 
           onStartConsultation={() => handleStartConsultation('symptom')} 
-          onUploadReport={() => handleStartConsultation('report')} 
           onOpenDashboard={handleOpenDashboard}
         />
+        <main>
+          <Hero 
+            onStartConsultation={() => handleStartConsultation('symptom')} 
+            onUploadReport={() => handleStartConsultation('report')} 
+            onOpenDashboard={handleOpenDashboard}
+          />
+          <Features />
+          <HowItWorks />
+          <Testimonials />
+          <FAQ />
+        </main>
+        <Footer onTermsClick={() => setView('terms')} onSupportClick={() => setView('support')} />
+        <SymptomModal isOpen={isSymptomOpen} onClose={() => setIsSymptomOpen(false)} />
+        <ReportModal isOpen={isReportOpen} onClose={() => setIsReportOpen(false)} />
+      </div>
+    );
+  };
 
-        {/* Features Section */}
-        <Features />
-
-        {/* How It Works Section */}
-        <HowItWorks />
-
-        {/* Testimonials Section */}
-        <Testimonials />
-
-        {/* FAQ Section */}
-        <FAQ />
-      </main>
-
-      {/* Footer */}
-      <Footer />
-
-      {/* Interactive Questionnaire Consultation Simulator Popup */}
-      <SymptomModal 
-        isOpen={isSymptomOpen} 
-        onClose={() => setIsSymptomOpen(false)} 
-      />
-
-      {/* Interactive Report Parser/Expaliner Selector Popup */}
-      <ReportModal 
-        isOpen={isReportOpen} 
-        onClose={() => setIsReportOpen(false)} 
-      />
-    </div>
+  return (
+    <>
+      <Toaster position="top-center" />
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={view}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="w-full"
+        >
+          {renderView()}
+        </motion.div>
+      </AnimatePresence>
+    </>
   );
 }

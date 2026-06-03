@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Heart, 
   Activity, 
@@ -39,6 +40,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
   const { user } = useAuth();
   
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [isLoadingPage, setIsLoadingPage] = useState(true);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -49,7 +51,13 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
         if(res.ok) setAppointments(await res.json());
       } catch(e) {}
     };
-    fetchAppointments();
+    
+    Promise.all([
+      fetchAppointments(),
+      new Promise(resolve => setTimeout(resolve, 800))
+    ]).then(() => {
+      setIsLoadingPage(false);
+    });
   }, []);
 
   const [reminders, setReminders] = useState([
@@ -140,7 +148,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
   );
 
   return (
-    <div id="patient-dashboard-wrapper" className="min-h-screen bg-slate-50/50 text-slate-800 flex flex-col pt-16">
+    <div id="patient-dashboard-wrapper" className="min-h-[100dvh] bg-slate-50/50 text-slate-800 flex flex-col pt-16">
       
       {/* Top dashboard control bar */}
       <nav className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-100 flex items-center justify-between px-6 py-3">
@@ -234,11 +242,29 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
             {t('Current Wellness Vitals summary')}
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {vitals.map((vital, index) => {
+            {isLoadingPage ? (
+              Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm flex flex-col justify-between animate-pulse">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="h-4 w-20 bg-slate-200 rounded"></div>
+                    <div className="h-4 w-12 bg-slate-200 rounded-full"></div>
+                  </div>
+                  <div className="flex items-end gap-3 mt-4">
+                    <div className="h-10 w-10 bg-slate-200 rounded-xl"></div>
+                    <div className="flex-1 space-y-2">
+                       <div className="h-6 w-full bg-slate-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : vitals.map((vital, index) => {
               const IconComp = vital.icon;
 
               return (
-                <div
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
                   key={index}
                   className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm flex flex-col justify-between"
                 >
@@ -264,7 +290,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
                     </div>
                     <span className="text-[10px] text-slate-400 font-medium">Auto-updated via health tracker link</span>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -297,11 +323,11 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
                   <div
                     key={consult.id}
                     id={`dashboard-consult-${consult.id}`}
-                    className="p-5 bg-slate-50/50 border border-slate-100 rounded-2xl space-y-3 hover:border-blue-200 hover:bg-white transition-all group"
+                    className="p-5 bg-slate-50/50 border border-slate-100 rounded-2xl space-y-3 premium-card-hover group"
                   >
                     <div className="flex justify-between items-start">
                       <div className="space-y-0.5">
-                        <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
                           {consult.clinic}
                         </span>
                         <h4 className="font-display font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
@@ -348,7 +374,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
                   <div
                     key={report.id}
                     id={`cabinet-report-${report.id}`}
-                    className="p-4 border border-slate-100 hover:border-blue-100 rounded-2xl flex items-center justify-between group bg-white hover:bg-blue-50/5/10 transition-colors"
+                    className="p-4 border border-slate-100 rounded-2xl flex items-center justify-between group bg-white premium-card-hover"
                   >
                     <div className="flex items-center space-x-3 MIN-W-0">
                       <div className="p-2.5 bg-blue-50 text-blue-700 rounded-xl shrink-0">
@@ -392,32 +418,51 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
                 <p className="text-[11px] text-slate-400 mt-0.5">{t('Clinical schedules timeline')}</p>
               </div>
 
-              {appointments.length === 0 && (
-                <p className="text-sm text-slate-500 text-center py-4">{t('No upcoming appointments')}</p>
-              )}
-              {appointments.map((app) => (
-                <div key={app.id} className="p-4 border border-blue-50 bg-blue-50/15 rounded-2xl space-y-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 bg-blue-100 text-blue-800 rounded-xl">
-                      <Calendar className="h-4.5 w-4.5" />
+              <div className="space-y-3">
+                {isLoadingPage ? (
+                  Array.from({ length: 2 }).map((_, idx) => (
+                    <div key={idx} className="p-4 border border-slate-100 bg-slate-50 rounded-2xl space-y-3 animate-pulse">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-9 w-9 bg-slate-200 rounded-xl"></div>
+                        <div className="space-y-1.5 flex-1 pl-1">
+                          <div className="h-3 w-1/2 bg-slate-200 rounded"></div>
+                          <div className="h-2 w-1/4 bg-slate-200 rounded"></div>
+                        </div>
+                      </div>
+                      <div className="h-8 w-full bg-slate-100 rounded-xl"></div>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 leading-snug">Consultation with {app.doctorname || app.doctorName || 'Doctor'}</h4>
-                      <p className="text-[10px] text-slate-500 leading-none mt-0.5">{app.specialty || 'General'}</p>
+                  ))
+                ) : appointments.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400 text-sm flex flex-col items-center gap-3 bg-slate-50/50 rounded-2xl border border-slate-100 border-dashed">
+                    <div className="p-3 bg-slate-100/50 rounded-full">
+                      <Calendar className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <p>{t('No upcoming appointments')}</p>
+                  </div>
+                ) : appointments.map((app) => (
+                  <div key={app.id} className="p-4 border border-blue-50 bg-blue-50/15 rounded-2xl space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 bg-blue-100 text-blue-800 rounded-xl">
+                        <Calendar className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900 leading-snug">Consultation with {app.doctorname || app.doctorName || 'Doctor'}</h4>
+                        <p className="text-[10px] text-slate-500 leading-none mt-0.5">{app.specialty || 'General'}</p>
+                      </div>
+                    </div>
+  
+                    <div className="bg-white border border-slate-100/60 p-2.5 rounded-xl flex justify-between items-center text-[11px] text-slate-600 font-medium">
+                      <span>📅 {app.date}</span>
+                      <span>⏰ {app.start_time} - {app.end_time}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${app.status === 'Pending' ? 'bg-orange-100 text-orange-700' : app.status === 'Confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                        {app.status}
+                      </span>
                     </div>
                   </div>
-
-                  <div className="bg-white border border-slate-100/60 p-2.5 rounded-xl flex justify-between items-center text-[11px] text-slate-600 font-medium">
-                    <span>📅 {app.date}</span>
-                    <span>⏰ {app.start_time} - {app.end_time}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${app.status === 'Pending' ? 'bg-orange-100 text-orange-700' : app.status === 'Confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                      {app.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* Medicine Reminders checkbox list */}
@@ -453,7 +498,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
 
                       <div className="max-w-[150px]">
                         <p className={`text-xs font-bold truncate`}>{rem.name}</p>
-                        <span className="text-[9px] block text-slate-400 font-semibold leading-normal">{rem.dosage}</span>
+                        <span className="text-[10px] block text-slate-400 font-semibold leading-normal">{rem.dosage}</span>
                       </div>
                     </div>
 
@@ -478,7 +523,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
                     
                     <h5 className="text-xs font-bold text-slate-900 leading-snug">{item.action}</h5>
                     <p className="text-[10px] text-slate-550 leading-none">{item.category}</p>
-                    <span className="text-[9px] text-slate-400 block font-medium mt-1 uppercase">{item.time}</span>
+                    <span className="text-[10px] text-slate-400 block font-medium mt-1 uppercase">{item.time}</span>
                   </div>
                 ))}
               </div>

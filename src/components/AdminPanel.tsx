@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ShieldCheck, CheckCircle2, XCircle, FileText, UserCheck, ShieldAlert } from 'lucide-react';
@@ -40,16 +41,16 @@ export default function AdminPanel() {
         body: JSON.stringify({ status, rejection_reason: status === 'Rejected' ? rejectionReason : null })
       });
       if(res.ok) {
-        alert(`Status updated to ${status}`);
+        toast(`Status updated to ${status}`);
         setSelectedDoctor(null);
         setRejectionReason('');
         fetchVerifications();
       } else {
         const d = await res.json();
-        alert('Error: ' + d.error);
+        toast.error('Error: ' + d.error);
       }
     } catch(e: any) {
-      alert('Error updating status: ' + e.message);
+      toast.error('Error updating status: ' + e.message);
     }
   };
 

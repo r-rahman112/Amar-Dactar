@@ -40,6 +40,7 @@ html[lang="bn"] {
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch; /* Momentum scrolling on mobile iOS */
+  touch-action: manipulation; /* Improves touch target response */
 }
 
 body {
@@ -50,6 +51,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none; /* Prevents scroll bounce lag on some mobile devices */
   text-rendering: optimizeLegibility;
+  width: 100%;
+}
+
+/* Enhance the momentum scrolling on all designated overflow containers 60-120fps */
+.overflow-y-auto, .overflow-y-scroll, .overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  /* Hardware Acceleration trigger for independent scrolling layers without breaking layout */
+  transform: translateZ(0); 
+  will-change: scroll-position;
 }
 
 .font-display {
@@ -101,8 +111,8 @@ body {
     button:not(:disabled):not(.no-anim):hover, 
     a.btn:hover,
     .hover-scale:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -110,8 +120,40 @@ body {
   button:not(:disabled):not(.no-anim):active, 
   a.btn:active,
   .hover-scale:active {
-    transform: translateY(0px) scale(0.98);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transform: translateY(0px) scale(0.99);
+    box-shadow: none;
+  }
+
+  /* Premium Card Hover Effect */
+  .premium-card-hover {
+    transition: all 300ms ease;
+    will-change: transform, box-shadow;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .premium-card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.04);
+    }
+  }
+
+  /* Targetable elements minimum height for touch devices */
+  @media (max-width: 640px) {
+    button:not(.no-touch-target),
+    a.btn,
+    .tap-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Hardware acceleration for smooth scrolling elements */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+  }
+  
+  /* Make all framer-motion elements hardware accelerated */
+  div[style*="transform"] {
+    will-change: transform, opacity;
   }
 
   button:focus-visible, 

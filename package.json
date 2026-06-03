@@ -12,6 +12,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@google/genai": "^2.7.0",
     "@tailwindcss/vite": "^4.1.14",
     "@types/cookie": "^0.6.0",
@@ -29,6 +30,7 @@
     "express-rate-limit": "^8.5.2",
     "file-saver": "^2.0.5",
     "firebase": "^12.14.0",
+    "framer-motion": "^12.40.0",
     "helmet": "^8.2.0",
     "ioredis": "^5.11.0",
     "jsonwebtoken": "^9.0.3",
@@ -39,6 +41,7 @@
     "rate-limit-redis": "^5.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.6.0",
     "recharts": "^3.8.1",
     "sanitize-html": "^2.17.4",
     "socket.io": "^4.8.3",

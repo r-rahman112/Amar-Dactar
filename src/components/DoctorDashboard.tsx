@@ -1,5 +1,6 @@
+import toast from "react-hot-toast";
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, DollarSign, Activity, Calendar, Settings,
   LogOut, User as UserIcon, CheckCircle2, XCircle
@@ -9,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 import DoctorScheduleManager from './DoctorScheduleManager';
 import DoctorAppointmentsView from './DoctorAppointmentsView';
+import AnimatedCounter from './AnimatedCounter';
 
 interface DoctorDashboardProps {
   onLogout: () => void;
@@ -64,11 +66,11 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
       const nidBackFile = (form.elements.namedItem('nid_back') as HTMLInputElement).files?.[0];
       const photoFile = (form.elements.namedItem('photo') as HTMLInputElement).files?.[0];
 
-      if(!bmdcFile && !verification?.details?.bmdc_cert_url) return alert('Please upload BMDC certificate');
-      if(!degreeFile && !verification?.details?.degree_cert_url) return alert('Please upload Degree certificate');
-      if(!nidFrontFile && !verification?.details?.nid_front_url) return alert('Please upload NID Front');
-      if(!nidBackFile && !verification?.details?.nid_back_url) return alert('Please upload NID Back');
-      if(!photoFile && !verification?.details?.photo_url) return alert('Please upload Professional Photo');
+      if(!bmdcFile && !verification?.details?.bmdc_cert_url) return toast.error('Please upload BMDC certificate');
+      if(!degreeFile && !verification?.details?.degree_cert_url) return toast.error('Please upload Degree certificate');
+      if(!nidFrontFile && !verification?.details?.nid_front_url) return toast.error('Please upload NID Front');
+      if(!nidBackFile && !verification?.details?.nid_back_url) return toast.error('Please upload NID Back');
+      if(!photoFile && !verification?.details?.photo_url) return toast.error('Please upload Professional Photo');
 
       const payload = {
         bmdc_cert_url: verification?.details?.bmdc_cert_url,
@@ -93,14 +95,14 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
         body: JSON.stringify(payload)
       });
       if (res.ok) {
-        alert('Verification documents submitted successfully!');
+        toast.success('Verification documents submitted successfully!');
         fetchVerification();
       } else {
         const errorData = await res.json();
-        alert('Error: ' + errorData.error);
+        toast.error('Error: ' + errorData.error);
       }
     } catch(err: any) {
-      alert('Error submitting documents: ' + err.message);
+      toast.error('Error submitting documents: ' + err.message);
     }
   };
 
@@ -132,7 +134,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center">
+      <div className="min-h-[100dvh] bg-slate-50 flex flex-col justify-center items-center">
         <BrandLogo />
         <div className="mt-6 flex items-center gap-2 text-slate-500">
           <div className="w-4 h-4 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin" />
@@ -143,7 +145,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+    <div className="min-h-[100dvh] bg-slate-50 flex flex-col md:flex-row">
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
@@ -193,39 +195,54 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
           </div>
         </header>
 
+        <AnimatePresence mode="wait">
         {/* Unified Statistics Grid */}
         {activeTab === 'dashboard' && (
-          <>
+          <motion.div
+            key="dashboard"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm premium-card-hover">
                 <div className="flex justify-between items-start mb-4">
                    <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl"><Activity className="h-6 w-6" /></div>
                 </div>
-                <h3 className="text-3xl font-bold text-slate-900">{stats?.activeConsultations || 0}</h3>
+                <h3 className="text-3xl font-bold text-slate-900">
+                  <AnimatedCounter value={stats?.activeConsultations || 0} />
+                </h3>
                 <p className="text-sm font-semibold text-slate-500 mt-1">Active Consultations</p>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm premium-card-hover">
                 <div className="flex justify-between items-start mb-4">
                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl"><Calendar className="h-6 w-6" /></div>
                 </div>
-                <h3 className="text-3xl font-bold text-slate-900">{stats?.todayAppointments || 0}</h3>
+                <h3 className="text-3xl font-bold text-slate-900">
+                  <AnimatedCounter value={stats?.todayAppointments || 0} />
+                </h3>
                 <p className="text-sm font-semibold text-slate-500 mt-1">Today's Appointments</p>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm col-span-1 sm:col-span-2 lg:col-span-2">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm col-span-1 sm:col-span-2 lg:col-span-2 premium-card-hover">
                 <div className="flex justify-between items-start mb-4">
                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl"><DollarSign className="h-6 w-6" /></div>
-                   <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">Available to withdraw: ৳{stats?.earnings?.withdrawable || 0}</span>
+                   <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
+                     Available to withdraw: <AnimatedCounter value={stats?.earnings?.withdrawable || 0} prefix="৳" />
+                   </span>
                 </div>
                 <div className="flex justify-between items-end">
                   <div>
-                     <h3 className="text-3xl font-bold text-slate-900">৳{stats?.earnings?.monthly || 0}</h3>
+                     <h3 className="text-3xl font-bold text-slate-900">
+                       <AnimatedCounter value={stats?.earnings?.monthly || 0} prefix="৳" />
+                     </h3>
                      <p className="text-sm font-semibold text-slate-500 mt-1">Monthly Earnings</p>
                   </div>
                   <div className="text-right">
-                     <p className="text-sm text-slate-600 font-medium">Daily: <span className="text-slate-900 font-bold">৳{stats?.earnings?.daily || 0}</span></p>
-                     <p className="text-sm text-slate-600 font-medium">Weekly: <span className="text-slate-900 font-bold">৳{stats?.earnings?.weekly || 0}</span></p>
+                     <p className="text-sm text-slate-600 font-medium">Daily: <span className="text-slate-900 font-bold"><AnimatedCounter value={stats?.earnings?.daily || 0} prefix="৳" /></span></p>
+                     <p className="text-sm text-slate-600 font-medium">Weekly: <span className="text-slate-900 font-bold"><AnimatedCounter value={stats?.earnings?.weekly || 0} prefix="৳" /></span></p>
                   </div>
                 </div>
               </motion.div>
@@ -298,22 +315,45 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                  </table>
               </div>
             </div>
-          </>
+          </motion.div>
         )}
 
         {activeTab === 'appointments' && (
-           <DoctorAppointmentsView />
+           <motion.div
+            key="appointments"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+           >
+             <DoctorAppointmentsView />
+           </motion.div>
         )}
 
         {activeTab === 'schedule' && (
-           <DoctorScheduleManager />
+           <motion.div
+            key="schedule"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+           >
+             <DoctorScheduleManager />
+           </motion.div>
         )}
 
         {activeTab === 'settings' && (
+          <motion.div
+            key="settings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
           <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6 mb-10 max-w-4xl mx-auto">
             <h2 className="text-xl font-bold text-slate-900 mb-6 font-display border-b border-slate-100 pb-4">Doctor Settings</h2>
             
-            <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert('Settings saved (Mock)!'); }}>
+            <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); toast('Settings saved (Mock)!'); }}>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div>
                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Full Name</label>
@@ -348,10 +388,18 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                </div>
             </form>
           </div>
+          </motion.div>
         )}
 
         {activeTab === 'verification' && (
-          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6 mb-10 max-w-4xl mx-auto">
+          <motion.div
+            key="verification"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6 mb-10 max-w-4xl mx-auto"
+          >
             <h2 className="text-xl font-bold text-slate-900 mb-6 font-display border-b border-slate-100 pb-4">Identity & Credential Verification</h2>
             
             <div className={`p-4 rounded-xl mb-6 font-medium text-sm flex items-start gap-3 ${
@@ -409,8 +457,9 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                 </div>
               </form>
             )}
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </main>
     </div>
   );

@@ -2,6 +2,7 @@ import { Star, Quote } from 'lucide-react';
 import { TESTIMONIALS_DATA } from '../data';
 import { TestimonialItem } from '../types';
 import { useTranslation } from '../contexts/LanguageContext';
+import { motion } from 'motion/react';
 
 export default function Testimonials() {
   const { t } = useTranslation();
@@ -12,21 +13,43 @@ export default function Testimonials() {
         
         {/* Section Title */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-800 text-xs font-semibold uppercase tracking-wider">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-emerald-800 text-xs font-semibold uppercase tracking-wider"
+          >
             {t('User Validation')}
-          </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          </motion.div>
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+            className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight"
+          >
             {t('Trusted by Patients, Loved by Professionals')}
-          </h2>
-          <p className="text-slate-600 text-base sm:text-lg">
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+            className="text-slate-600 text-base sm:text-lg"
+          >
             {t('Read how everyday health-conscious individuals and medical practitioners are utilizing AI-driven summarization to refine their consultation practices.')}
-          </p>
+          </motion.p>
         </div>
 
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {TESTIMONIALS_DATA.map((testimonial: TestimonialItem) => (
-            <div
+          {TESTIMONIALS_DATA.map((testimonial: TestimonialItem, index) => (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
               key={testimonial.id}
               id={`testimonial-card-${testimonial.id}`}
               className="bg-white border border-slate-100/80 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-between relative"
@@ -63,7 +86,7 @@ export default function Testimonials() {
                   </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 

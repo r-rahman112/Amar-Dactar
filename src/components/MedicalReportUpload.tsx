@@ -189,7 +189,7 @@ export default function MedicalReportUpload({ onBack }: MedicalReportUploadProps
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-6 px-4 sm:px-6 lg:px-8 w-full">
+    <div className="min-h-[100dvh] bg-slate-50 flex flex-col items-center py-6 px-4 sm:px-6 lg:px-8 w-full">
       <div className="w-full max-w-3xl space-y-6">
         
         {/* Header */}

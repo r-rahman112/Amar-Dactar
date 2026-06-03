@@ -175,7 +175,7 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit, patientId }:
              >
                <div className={`max-w-[85%] sm:max-w-[70%] rounded-2xl p-3 sm:px-4 sm:py-3 shadow-sm relative group ${isMine ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white text-slate-800 border border-slate-100 rounded-tl-sm'}`}>
                  <p className="text-[13px] sm:text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-                 <div className={`text-[9px] font-medium mt-1.5 flex justify-end gap-1 items-center ${isMine ? 'text-blue-200' : 'text-slate-400'}`}>
+                 <div className={`text-[10px] font-medium mt-1.5 flex justify-end gap-1 items-center ${isMine ? 'text-blue-200' : 'text-slate-400'}`}>
                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                  </div>
                </div>

@@ -2,6 +2,7 @@ import * as Icons from 'lucide-react';
 import { STEPS_DATA } from '../data';
 import { StepItem } from '../types';
 import { useTranslation } from '../contexts/LanguageContext';
+import { motion } from 'motion/react';
 
 export default function HowItWorks() {
   const { t } = useTranslation();
@@ -12,15 +13,33 @@ export default function HowItWorks() {
         
         {/* Header content */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 text-xs font-semibold uppercase tracking-wider">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 text-xs font-semibold uppercase tracking-wider"
+          >
             {t('Simple 3-Step Process')}
-          </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          </motion.div>
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+            className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight"
+          >
             {t('How Simple Is It to Use?')}
-          </h2>
-          <p className="text-slate-600 text-base sm:text-lg">
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+            className="text-slate-600 text-base sm:text-lg"
+          >
             {t('Understand your health trends in real-time. Follow our three core steps to experience immediate preventative triage and diagnostic analysis translation.')}
-          </p>
+          </motion.p>
         </div>
 
         {/* Steps timeline connected */}
@@ -33,7 +52,11 @@ export default function HowItWorks() {
               const IconComponent = (Icons as any)[stepItem.iconName] || Icons.Sparkles;
 
               return (
-                <div 
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
                   key={stepItem.step} 
                   id={`how-it-works-step-${stepItem.step}`}
                   className="flex flex-col items-center text-center space-y-4 group"
@@ -55,7 +78,7 @@ export default function HowItWorks() {
                   <p className="text-slate-500 text-sm leading-relaxed max-w-xs font-normal">
                     {t(stepItem.description)}
                   </p>
-                </div>
+                </motion.div>
               );
             })}
           </div>

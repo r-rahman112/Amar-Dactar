@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User, Phone, ArrowLeft, ShieldCheck, Eye, EyeOff, Activity } from 'lucide-react';
@@ -96,7 +97,7 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess }: AuthUIProps
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to verify OTP');
         // Actually here we would change the password, but since this is just OTP verification:
-        window.alert("Password reset OTP verified! You can now reset your password.");
+        window.toast.success('Password reset OTP verified! You can now reset your password.');
         setView('login');
       }
     } catch (err: any) {
@@ -178,19 +179,19 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess }: AuthUIProps
   };
 
   const titleVariant = {
-    hidden: { opacity: 0, y: -10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, y: -10, transition: { duration: 0.2 } }
+    hidden: { opacity: 0, y: -5 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+    exit: { opacity: 0, y: -5, transition: { duration: 0.2 } }
   };
 
   const formVariant = {
-    hidden: { opacity: 0, scale: 0.98 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.3, delay: 0.1 } },
-    exit: { opacity: 0, scale: 0.98, transition: { duration: 0.2 } }
+    hidden: { opacity: 0, y: 5 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25, delay: 0.05 } },
+    exit: { opacity: 0, y: 5, transition: { duration: 0.2 } }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4">
+    <div className="min-h-[100dvh] bg-slate-50 flex flex-col justify-center items-center p-4">
       {view === 'register' ? (
         <div className="w-full relative z-10 my-10 mt-20">
            <PatientRegistration onSuccess={onSuccess} onLoginClick={() => setView('login')} />

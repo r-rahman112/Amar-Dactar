@@ -162,7 +162,7 @@ export default function HealthVault({ onBack, userRole = 'PATIENT', patientId = 
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-12">
+    <div className="min-h-[100dvh] bg-slate-50 font-sans text-slate-900 pb-12">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-10 px-4 py-4 md:px-8 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-4">

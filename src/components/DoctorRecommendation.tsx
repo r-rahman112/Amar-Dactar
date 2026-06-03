@@ -67,7 +67,7 @@ export default function DoctorRecommendation({ onBack }: { onBack: () => void })
   }, [doctors, searchQuery, selectedSpecialty, selectedLocation, consultationType]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col items-center">
+    <div className="min-h-[100dvh] bg-slate-50 font-sans text-slate-800 flex flex-col items-center">
       
       {/* Header */}
       <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
@@ -197,12 +197,13 @@ export default function DoctorRecommendation({ onBack }: { onBack: () => void })
               filteredDoctors.map((doc, idx) => (
                 <motion.div
                   layout
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: idx * 0.05 }}
+                  transition={{ duration: 0.5, delay: idx * 0.05, ease: "easeOut" }}
                   key={doc.id}
-                  className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5"
+                  className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm premium-card-hover flex flex-col sm:flex-row gap-5"
                 >
                   <div className="flex gap-4 sm:contents">
                     {/* Image */}

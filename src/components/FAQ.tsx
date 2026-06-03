@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, HelpCircle, MessageCircleQuestion } from 'lucid
 import { FAQS_DATA } from '../data';
 import { FAQItem } from '../types';
 import { useTranslation } from '../contexts/LanguageContext';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function FAQ() {
   const { t } = useTranslation();
@@ -18,24 +19,46 @@ export default function FAQ() {
         
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 text-xs font-semibold uppercase tracking-wider">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 text-xs font-semibold uppercase tracking-wider"
+          >
             {t('Common Inquiries')}
-          </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          </motion.div>
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+            className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight"
+          >
             {t('Frequently Asked Questions')}
-          </h2>
-          <p className="text-slate-600 text-normal sm:text-lg">
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+            className="text-slate-600 text-normal sm:text-lg"
+          >
             {t('Have questions about accuracy, security, or capabilities? Find simple, reliable answers about the আমার ডাক্তার triage ecosystem below.')}
-          </p>
+          </motion.p>
         </div>
 
         {/* Accordions Stack */}
         <div className="space-y-4">
-          {FAQS_DATA.map((faq: FAQItem) => {
+          {FAQS_DATA.map((faq: FAQItem, index) => {
             const isOpen = openId === faq.id;
 
             return (
-              <div
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.1 }}
+                transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
                 key={faq.id}
                 id={`faq-item-${faq.id}`}
                 className={`border rounded-2xl transition-all duration-300 ${
@@ -71,13 +94,19 @@ export default function FAQ() {
                     {t(faq.answer)}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
 
         {/* Live Support / Doctor disclaimer indicator */}
-        <div className="mt-12 p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col sm:flex-row gap-4 items-center justify-between text-center sm:text-left">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="mt-12 p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col sm:flex-row gap-4 items-center justify-between text-center sm:text-left"
+        >
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
               <MessageCircleQuestion className="h-5 w-5" />
@@ -93,7 +122,7 @@ export default function FAQ() {
           >
             {t('Ask Our Helpdesk')}
           </a>
-        </div>
+        </motion.div>
 
       </div>
     </section>

@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock } from 'lucide-react';
 
@@ -49,10 +50,10 @@ export default function DoctorScheduleManager() {
         body: JSON.stringify(schedule)
       });
       if (res.ok) {
-        alert('Schedule saved successfully!');
+        toast.success('Schedule saved successfully!');
       }
     } catch(e) {
-      alert('Failed to save schedule');
+      toast.error('Failed to save schedule');
     }
   };
 

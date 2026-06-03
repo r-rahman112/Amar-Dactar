@@ -16,6 +16,7 @@ import UserManagement from './UserManagement';
 import DoctorVerificationsManagement from './DoctorVerificationsManagement';
 import ConsentHistory from './ConsentHistory';
 import { getRoleDisplay } from './Header';
+import AnimatedCounter from './AnimatedCounter';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -120,7 +121,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-[100dvh] bg-slate-50 flex">
       {/* Desktop Sidebar */}
       <aside className="hidden md:block w-64 fixed inset-y-0 z-20">
         <SidebarContent />
@@ -151,7 +152,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 flex flex-col min-h-screen max-w-[100vw]">
+      <main className="flex-1 md:ml-64 flex flex-col min-h-[100dvh] max-w-full">
         {/* Top Header */}
         <header className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -190,8 +191,16 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
         {/* Dashboard Content */}
         <div className="p-4 sm:px-6 lg:px-8 py-8 flex-1 overflow-x-hidden">
+          <AnimatePresence mode="wait">
           {activeMenu === 'dashboard' && (
-            <div className="space-y-6">
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t('Overview')}</h2>
                 <div className="text-sm font-medium text-slate-500 bg-white px-3 py-1.5 border border-slate-200 rounded-lg shadow-sm">{t('Last 30 Days')}</div>
@@ -200,10 +209,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: t('Total Revenue'), value: '$45,231', trend: '+12.5%', icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                  { label: t('Appointments'), value: '1,245', trend: '+5.2%', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
-                  { label: t('Total Patients'), value: '8,409', trend: '+2.4%', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                  { label: t('Active Doctors'), value: '142', trend: '+1.1%', icon: Stethoscope, color: 'text-purple-600', bg: 'bg-purple-50' },
+                  { label: t('Total Revenue'), value: '$45,231', numeric: 45231, prefix: '$', trend: '+12.5%', icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                  { label: t('Appointments'), value: '1,245', numeric: 1245, prefix: '', trend: '+5.2%', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
+                  { label: t('Total Patients'), value: '8,409', numeric: 8409, prefix: '', trend: '+2.4%', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                  { label: t('Active Doctors'), value: '142', numeric: 142, prefix: '', trend: '+1.1%', icon: Stethoscope, color: 'text-purple-600', bg: 'bg-purple-50' },
                 ].map((stat, idx) => (
                   <div key={idx} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
                     <div className="flex justify-between items-start mb-4">
@@ -216,7 +225,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       </div>
                     </div>
                     <div>
-                      <h4 className="text-2xl font-bold text-slate-900 mb-1">{stat.value}</h4>
+                      <h4 className="text-2xl font-bold text-slate-900 mb-1">
+                        <AnimatedCounter value={stat.numeric} prefix={stat.prefix} />
+                      </h4>
                       <p className="text-sm font-medium text-slate-500">{stat.label}</p>
                     </div>
                   </div>
@@ -333,23 +344,54 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   </table>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {(activeMenu === 'users' || activeMenu === 'suspended_users' || activeMenu === 'banned_users' || activeMenu === 'export_data') && (
-            <UserManagement viewMode={activeMenu} />
+            <motion.div
+              key="users_management"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <UserManagement viewMode={activeMenu} />
+            </motion.div>
           )}
 
           {activeMenu === 'doctor_verifications' && (
-            <DoctorVerificationsManagement />
+            <motion.div
+              key="doctor_verifications"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DoctorVerificationsManagement />
+            </motion.div>
           )}
 
           {activeMenu === 'consent_history' && (
-            <ConsentHistory />
+            <motion.div
+              key="consent_history"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ConsentHistory />
+            </motion.div>
           )}
 
           {activeMenu !== 'dashboard' && activeMenu !== 'users' && activeMenu !== 'suspended_users' && activeMenu !== 'banned_users' && activeMenu !== 'export_data' && activeMenu !== 'doctor_verifications' && activeMenu !== 'consent_history' && (
-            <div className="flex-1 flex flex-col items-center justify-center text-center py-32 px-4">
+            <motion.div
+              key="placeholder"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="flex-1 flex flex-col items-center justify-center text-center py-32 px-4"
+            >
               <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5 border border-slate-200">
                 <FileText className="h-8 w-8 text-slate-400" />
               </div>
@@ -357,8 +399,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               <p className="text-slate-500 font-medium max-w-sm">
                 {t('This module is currently in development. You will be able to manage this section here in the next update.')}
               </p>
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </div>
       </main>
     </div>

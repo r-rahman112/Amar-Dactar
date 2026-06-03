@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
@@ -475,7 +476,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
 
   return (
     <div 
-      className="h-screen flex text-slate-800 bg-white relative overflow-hidden"
+      className="h-[100dvh] flex text-slate-800 bg-white relative overflow-hidden"
       onDragOver={handleDragOver}
     >
       
@@ -592,7 +593,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
               >
                 <div className="space-y-1.5 pr-6">
                   {/* Category badge */}
-                  <span className="text-[9px] font-bold tracking-wider uppercase text-blue-600">
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-blue-600">
                     {session.category}
                   </span>
                   
@@ -639,7 +640,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
             </div>
             <div>
               <p className="text-[10px] font-bold text-slate-800 leading-none">Sandbox Enclave</p>
-              <p className="text-[9px] text-slate-400 leading-none mt-0.5">HIPAA standards encrypted</p>
+              <p className="text-[10px] text-slate-400 leading-none mt-0.5">HIPAA standards encrypted</p>
             </div>
           </div>
         </div>
@@ -683,7 +684,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
                 <h2 className="font-display font-bold text-sm sm:text-base text-slate-900 leading-none">
                   {activeSessionDetail.title || t('Consultation Workspace')}
                 </h2>
-                <span className="text-[9px] bg-slate-100 text-slate-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">
+                <span className="text-[10px] bg-slate-100 text-slate-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">
                   {t('SECURE CHAT')}
                 </span>
               </div>
@@ -801,7 +802,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
                   )}
 
                   {/* Timestamp detail */}
-                  <span className={`text-[9px] text-slate-450 uppercase block font-medium ${isUser ? 'text-right pr-2' : 'pl-2'}`}>
+                  <span className={`text-[10px] text-slate-450 uppercase block font-medium ${isUser ? 'text-right pr-2' : 'pl-2'}`}>
                     {msg.timestamp}
                   </span>
                 </div>
@@ -848,7 +849,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
                 </div>
                 <div className="max-w-[150px]">
                   <p className="font-bold text-slate-900 truncate">{att.name}</p>
-                  <span className="text-[9px] text-slate-400 block leading-none mt-0.5">{att.size}</span>
+                  <span className="text-[10px] text-slate-400 block leading-none mt-0.5">{att.size}</span>
                 </div>
                 <button
                   onClick={() => handleRemoveDraftAttachment(att.id)}
@@ -1027,12 +1028,12 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
                });
                const data = await res.json();
                if(data.success) {
-                  alert('Appointment Booked Successfully!');
+                  toast.success('Appointment Booked Successfully!');
                } else {
-                  alert(data.error || 'Failed to book');
+                  toast.error(data.error || 'Failed to book');
                }
              } catch(e) {
-               alert('Booking Error');
+               toast.error('Booking Error');
              }
           }}
         />

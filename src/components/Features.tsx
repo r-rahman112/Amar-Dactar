@@ -14,27 +14,28 @@ export default function Features() {
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <motion.div 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 text-xs font-semibold uppercase tracking-wider"
           >
             {t('Premium Features')}
           </motion.div>
           <motion.h2 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
             className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight not-italic"
           > 
             {t('How "আমার ডাক্তার" Enhances Your Wellness Triage')}
           </motion.h2>
           <motion.p 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
             className="text-slate-600 text-base sm:text-lg"
           >
             {t('We merge advanced clinical natural language parsing with certified privacy protocols to make personal preventative support simpler, faster, and stress-free.')}
@@ -55,10 +56,10 @@ export default function Features() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.1 }}
-                transition={{ delay: index * 0.1, duration: 0.4 }}
+                transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
                 key={feature.id}
                 id={`feature-card-${feature.id}`}
-                className={`relative group bg-white border rounded-3xl p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between ${
+                className={`relative group bg-white border rounded-3xl p-8 premium-card-hover flex flex-col justify-between ${
                   isPopular 
                     ? 'border-blue-100/70 shadow-sm shadow-blue-50/50 bg-gradient-to-b from-white to-blue-50/10' 
                     : 'border-slate-100 shadow-sm'
