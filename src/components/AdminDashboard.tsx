@@ -121,9 +121,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   );
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50 flex">
+    <div className="min-h-[100dvh] bg-slate-50 flex items-start">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-64 fixed inset-y-0 z-20">
+      <aside className="hidden md:block w-64 sticky top-[72px] h-[calc(100vh-72px)] z-20 overflow-y-auto border-r border-slate-100 bg-white">
         <SidebarContent />
       </aside>
 
@@ -152,9 +152,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 flex flex-col min-h-[100dvh] max-w-full">
+      <main className="flex-1 flex flex-col min-h-[100dvh] max-w-full">
         {/* Top Header */}
-        <header className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <header className="relative z-10 bg-white border-b border-slate-100 px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
               className="md:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-50 rounded-lg"

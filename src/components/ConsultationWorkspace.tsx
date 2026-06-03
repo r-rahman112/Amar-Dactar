@@ -476,7 +476,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
 
   return (
     <div 
-      className="h-[100dvh] flex text-slate-800 bg-white relative overflow-hidden"
+      className="h-[calc(100dvh-72px)] flex text-slate-800 bg-white relative overflow-hidden"
       onDragOver={handleDragOver}
     >
       

@@ -70,7 +70,7 @@ export default function DoctorRecommendation({ onBack }: { onBack: () => void })
     <div className="min-h-[100dvh] bg-slate-50 font-sans text-slate-800 flex flex-col items-center">
       
       {/* Header */}
-      <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+      <header className="w-full bg-white border-b border-slate-200 relative z-20 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
           <button 
             onClick={onBack}

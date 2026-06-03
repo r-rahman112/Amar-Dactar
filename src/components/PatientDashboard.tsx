@@ -148,41 +148,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
   );
 
   return (
-    <div id="patient-dashboard-wrapper" className="min-h-[100dvh] bg-slate-50/50 text-slate-800 flex flex-col pt-16">
-      
-      {/* Top dashboard control bar */}
-      <nav className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-100 flex items-center justify-between px-6 py-3">
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={onBackToHome}
-            className="p-2 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-colors cursor-pointer"
-            title="Go to main landing page"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          
-          <div className="flex items-center space-x-2">
-            <BrandLogo iconSize="h-4.5 w-4.5" />
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <div className="hidden md:flex items-center text-xs text-emerald-600 bg-emerald-50 border border-emerald-100/85 px-3 py-1.5 rounded-full font-bold">
-            <ShieldCheck className="h-4 w-4 mr-1 shrink-0" />
-            <span>{t('Virtual Medical Enclave Active')}</span>
-          </div>
-
-          {/* Consultation CTA */}
-          <button
-            onClick={() => onStartConsultation('symptom')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm shadow-blue-100 flex items-center gap-1.5"
-          >
-            <Plus className="h-4 w-4" />
-            <span>{t('Start Consultation')}</span>
-          </button>
-        </div>
-      </nav>
-
+    <div id="patient-dashboard-wrapper" className="min-h-[100dvh] bg-slate-50/50 text-slate-800 flex flex-col">
       {/* Main dashboard core area */}
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1">
         

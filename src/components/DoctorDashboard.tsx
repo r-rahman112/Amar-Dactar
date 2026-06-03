@@ -148,9 +148,6 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
     <div className="min-h-[100dvh] bg-slate-50 flex flex-col md:flex-row">
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <BrandLogo />
-        </div>
         <div className="flex-1 py-6 px-4 space-y-2">
            <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 font-semibold rounded-xl text-sm transition-colors ${activeTab === 'dashboard' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}`}>
              <Activity className="h-5 w-5" /> Dashboard

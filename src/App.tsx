@@ -173,7 +173,7 @@ export default function App() {
 
     if (view === 'doctorChat' && doctorActiveChatId) {
        return (
-          <div className="h-[100dvh] w-full relative bg-slate-50 flex flex-col">
+          <div className="h-[calc(100dvh-72px)] w-full relative bg-slate-50 flex flex-col">
             <PaidDoctorChat 
               sessionId={doctorActiveChatId} 
               doctor={{ id: user?.id || 'doc-1', fullName: 'You', specialty: 'Doctor', photoUrl: '', bmdcRegistration: '', availableHours: '', availableStatus: '', consultationFee: 0, degree: '', experience: '', hospitalAffiliation: '', ratings: '', reviews: 0 }} 
@@ -274,10 +274,6 @@ export default function App() {
 
     return (
       <div className="relative min-h-[100dvh] bg-slate-50 text-slate-800 selection:bg-blue-100 selection:text-blue-800 antialiased">
-        <Header 
-          onStartConsultation={() => handleStartConsultation('symptom')} 
-          onOpenDashboard={handleOpenDashboard}
-        />
         <main>
           <Hero 
             onStartConsultation={() => handleStartConsultation('symptom')} 
@@ -299,6 +295,10 @@ export default function App() {
   return (
     <>
       <Toaster position="top-center" />
+      <Header 
+        onStartConsultation={() => handleStartConsultation('symptom')} 
+        onOpenDashboard={handleOpenDashboard}
+      />
       <AnimatePresence mode="wait">
         <motion.div 
           key={view}

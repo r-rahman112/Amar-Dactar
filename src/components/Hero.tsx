@@ -29,7 +29,7 @@ export default function Hero({ onStartConsultation, onUploadReport, onOpenDashbo
   return (
     <section
       id="hero-section"
-      className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-radial from-blue-50/50 via-white to-white"
+      className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-radial from-blue-50/50 via-white to-white"
     >
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/30 rounded-full blur-3xl -z-10 pointer-events-none" />
