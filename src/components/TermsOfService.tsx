@@ -1,6 +1,5 @@
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
-import BrandLogo from './BrandLogo';
 
 interface TermsOfServiceProps {
   onBack: () => void;
@@ -13,19 +12,6 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
 
   return (
     <div className="min-h-[100dvh] bg-slate-50 flex flex-col relative">
-      {/* Top Navigation / Header area identical to internal pages */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="w-[100px]"></div>
-          
-          <button onClick={onBack} className="flex-1 flex justify-center cursor-pointer hover:opacity-80 transition-opacity focus:outline-none" aria-label="Go to home">
-            <BrandLogo />
-          </button>
-          
-          <div className="w-[100px]"></div> {/* Spacer for centering */}
-        </div>
-      </header>
-
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Header section */}

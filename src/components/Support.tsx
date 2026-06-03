@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, MessageSquare, HeadphonesIcon, HelpCircle, AlertCircle, CheckCircle2, ShieldCheck, Send } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
-import BrandLogo from './BrandLogo';
 import toast from 'react-hot-toast';
 import { motion } from 'motion/react';
 
@@ -126,18 +125,6 @@ export default function Support({ onBack }: SupportProps) {
 
   return (
     <div className="min-h-[100dvh] bg-slate-50 flex flex-col relative font-sans">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="w-[100px]"></div>
-          
-          <button onClick={onBack} className="flex-1 flex justify-center cursor-pointer hover:opacity-80 transition-opacity focus:outline-none" aria-label="Go to home">
-            <BrandLogo />
-          </button>
-          
-          <div className="w-[100px]"></div>
-        </div>
-      </header>
-
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         
         {/* Hero Section */}
@@ -172,6 +159,29 @@ export default function Support({ onBack }: SupportProps) {
           
           {/* Left Column: Form & Info */}
           <div className="lg:col-span-7 space-y-8">
+            
+            {/* Visual Illustration Card */}
+            <div className="bg-slate-900 rounded-[2rem] p-8 overflow-hidden relative shadow-lg min-h-[300px] flex items-center justify-center">
+               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-screen filter blur-[80px] opacity-20"></div>
+               <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[80px] opacity-20"></div>
+               
+               <div className="relative text-center z-10 flex flex-col items-center">
+                  <div className="w-32 h-32 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 mb-6">
+                    <div className="relative">
+                      <HeadphonesIcon className="w-16 h-16 text-blue-400 stroke-[1.5]" />
+                      <div className="absolute -top-1 -right-2 flex w-4 h-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-400 border-2 border-slate-900"></span>
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="text-white font-bold text-2xl mb-2">{isBengali ? 'আমরা শুনছি' : 'We Are Listening'}</h3>
+                  <p className="text-slate-400 max-w-[250px] leading-relaxed">
+                     {isBengali ? 'আমাদের সাপোর্ট টিম সবসময় আপনার সেবায় প্রস্তুত' : 'Our support team is always ready to assist you'}
+                  </p>
+               </div>
+            </div>
+
             <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-8 sm:p-10">
               
               {successStatus && (
@@ -289,28 +299,9 @@ export default function Support({ onBack }: SupportProps) {
             </div>
           </div>
 
-          {/* Right Column: Illustration & Info */}
+          {/* Right Column: Info Only */}
           <div className="lg:col-span-5 space-y-8 flex flex-col h-full">
             
-            {/* Visual Illustration Card */}
-            <div className="bg-slate-900 rounded-[2rem] p-8 overflow-hidden relative shadow-lg flex-1 min-h-[300px] flex items-center justify-center">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-screen filter blur-[80px] opacity-20"></div>
-               <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[80px] opacity-20"></div>
-               
-               <div className="relative text-center z-10 flex flex-col items-center">
-                  <div className="w-32 h-32 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 mb-6">
-                    <div className="relative">
-                      <HeadphonesIcon className="w-16 h-16 text-blue-400 stroke-[1.5]" />
-                      <div className="absolute -top-1 -right-2 w-4 h-4 bg-emerald-400 rounded-full border-2 border-slate-900"></div>
-                    </div>
-                  </div>
-                  <h3 className="text-white font-bold text-2xl mb-2">{isBengali ? 'আমরা শুনছি' : 'We Are Listening'}</h3>
-                  <p className="text-slate-400 max-w-[250px] leading-relaxed">
-                     {isBengali ? 'আমাদের সাপোর্ট টিম সবসময় আপনার সেবায় প্রস্তুত' : 'Our support team is always ready to assist you'}
-                  </p>
-               </div>
-            </div>
-
             {/* Support Info Card */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
               <h3 className="font-bold text-slate-800 text-lg mb-6 pb-4 border-b border-slate-100 flex items-center">
