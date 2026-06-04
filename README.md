@@ -159,8 +159,13 @@ Ensure your deployment environment (Vercel, Railway, Render, etc.) has all the f
 | `VITE_SUPABASE_ANON_KEY` | **Required** | Public API key for Supabase client calls. | `eyJhbGciOiJIUz...` |
 | `DATABASE_URL` | **Required** | Full connection string to your PostgreSQL instance. | `postgres://user:pass@host/db` |
 | `JWT_SECRET` / `SESSION_SECRET`| **Required** | Cryptographic key to sign auth JWT cookies. | `your_long_random_jwt_secret` |
-| `FILE_UPLOAD_PATH` | **Required** | Directory path mapping where medical reports are uploaded on the node server. | `./uploads` |
 | `NODE_ENV` | **Required** | Defines the environment. | `production` |
+| `VITE_FIREBASE_API_KEY` | **Required** | Firebase setup for OAuth | `AIzaSy...` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | **Required** | Firebase Setup | `app.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID` | **Required** | Firebase Setup | `app` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | **Required** | Firebase Setup | `app.firebasestorage.app` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | **Required** | Firebase Setup | `12345` |
+| `VITE_FIREBASE_APP_ID` | **Required** | Firebase Setup | `1:123:web:abc` |
 | `REDIS_URL` | Optional | Connection string for Redis Rate Limiting. | `rediss://default:pass@host:port` |
 | `AI_PROVIDER` | Optional | Which AI inference provider to use. Defaults to `openrouter`. | `openrouter` |
 | `OPENROUTER_API_KEY` | **Required** (if OpenRouter) | Authentication for LLM inference. | `sk-or-v1-abcdef...` |
@@ -175,8 +180,8 @@ Ensure your deployment environment (Vercel, Railway, Render, etc.) has all the f
 You will need to obtain the following keys to authorize interactions:
 
 * **OpenRouter API Key**: Obtain from [OpenRouter.ai](https://openrouter.ai). This allows the application to query premium generative models.
-* **Firebase Credentials**: Obtain from [Firebase Console](https://console.firebase.google.com). Configure a new Web App to get your configuration object (apiKey, authDomain, projectId). Paste these configuration properties directly into `src/lib/firebase.ts`.
-* **Supabase Keys**: Obtain from your project dashboard on [Supabase.com](https://supabase.com). You will need the `Project URL` and `anon` key.
+* **Firebase Credentials**: Obtain from [Firebase Console](https://console.firebase.google.com). Configure a new Web App to get your configuration object. Inject these credentials via the `VITE_FIREBASE_*` environment variables in your deployment dashboard!
+* **Supabase Keys & Storage**: Obtain from your project dashboard on [Supabase.com](https://supabase.com). You will need the `Project URL` and `anon` key. You **MUST** create a public storage bucket named `medical-reports` in Supabase to accept medical file uploads!
 * **Resend API Key**: Obtain from [Resend.com](https://resend.com). This key is strictly injected into Supabase secrets (not your main app `.env`) to process emails securely.
 
 ---
@@ -272,7 +277,7 @@ Ensure the application is fully functional:
 
 1. **Authorized Domains**: Go to Firebase Authentication Settings. Add your production domain (`your-app.com`) to the **Authorized Domains** list to allow OAuth flows.
 2. **Providers**: Enable Google, Facebook, and Apple authentication gateways.
-3. **Client Configuration**: Hardcode the public Firebase configurations directly inside `src/lib/firebase.ts`. Because these are standard connection identifiers, they are safe to expose to the frontend.
+3. **Client Configuration**: Configure your deployment environment to pass the `VITE_FIREBASE_*` environment variables directly to the build. Do NOT hardcode them into the source control.
 
 ---
 

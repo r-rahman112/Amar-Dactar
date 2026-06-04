@@ -1,25 +1,8 @@
 import multer from 'multer';
 import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
 import { NextFunction, Request, Response } from 'express';
 
-const uploadDir = process.env.FILE_UPLOAD_PATH || path.join(process.cwd(), 'uploads');
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Force lowercase extension and restrict strictly
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${uuidv4()}${ext}`);
-  }
-});
+const storage = multer.memoryStorage();
 
 export const upload = multer({
   storage: storage,
@@ -40,21 +23,17 @@ export const upload = multer({
 });
 
 export const validateMagicBytes = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.file) return next();
+  if (!req.file || !req.file.buffer) return next();
 
-  // 2. Validate magic bytes
+  // 2. Validate magic bytes from memory buffer
   try {
-    const fd = fs.openSync(req.file.path, 'r');
-    const buffer = Buffer.alloc(24);
-    fs.readSync(fd, buffer, 0, 24, 0);
-    fs.closeSync(fd);
-
-    const hex = buffer.toString('hex').toUpperCase();
+    const buffer = req.file.buffer;
+    const hex = buffer.toString('hex', 0, 12).toUpperCase();
     const isJPEG = hex.startsWith('FFD8FF');
     const isPNG = hex.startsWith('89504E470D0A1A0A');
     const isPDF = hex.startsWith('25504446'); // %PDF
-    const isWEBP = buffer.toString('utf8', 0, 4) === 'RIFF' && buffer.toString('utf8', 8, 12) === 'WEBP';
-    const isMP4 = hex.includes('66747970') || buffer.slice(4, 8).toString('utf8') === 'ftyp';
+    const isWEBP = buffer.length > 12 && buffer.toString('utf8', 0, 4) === 'RIFF' && buffer.toString('utf8', 8, 12) === 'WEBP';
+    const isMP4 = hex.includes('66747970') || buffer.length >= 8 && buffer.slice(4, 8).toString('utf8') === 'ftyp';
 
     let valid = false;
     if (isJPEG && req.file.mimetype === 'image/jpeg') valid = true;
@@ -64,15 +43,11 @@ export const validateMagicBytes = (req: Request, res: Response, next: NextFuncti
     else if (isMP4 && req.file.mimetype === 'video/mp4') valid = true;
 
     if (!valid) {
-      fs.unlinkSync(req.file.path);
       return res.status(400).json({ error: 'File content verification failed. Magic bytes do not match expected type.' });
     }
 
     next();
   } catch (error) {
-    if (fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
     return res.status(500).json({ error: 'Failed to process file validation' });
   }
 };

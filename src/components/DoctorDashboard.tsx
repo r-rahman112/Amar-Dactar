@@ -54,6 +54,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
     });
     if (!res.ok) throw new Error('Failed to upload file');
     const data = await res.json();
+    if (data.url.startsWith('http')) return data.url;
     return window.location.origin + data.url;
   };
 
