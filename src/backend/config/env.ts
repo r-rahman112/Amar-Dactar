@@ -17,5 +17,11 @@ export const ENV = {
         throw new Error('Fatal: JWT_SECRET is missing');
     }
     return secret;
+  },
+  get ENABLE_LEGACY_JWT() {
+    return process.env.ENABLE_LEGACY_JWT === 'true'; // Disabled by default for Phase 2 as per constraints
+  },
+  get ADMIN_SEED() {
+    return process.env.ADMIN_SEED === 'true';
   }
 };

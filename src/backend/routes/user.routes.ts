@@ -38,6 +38,9 @@ const router = Router();
 
 router.use(sanitizeRequest);
 
+router.get('/health', UserController.getHealthCheck);
+router.get('/admin/migration-report', authenticateToken, isSuperAdmin, UserController.getMigrationReport);
+
 router.post('/login', loginLimiter, validateRequest(loginSchema), UserController.login);
 router.post('/social-login', loginLimiter, UserController.socialLogin);
 router.post('/complete-profile', authenticateToken, UserController.completeProfile);
