@@ -1,23 +1,23 @@
-# System Instructions
+# Amar Dactar Project Rules
 
-You are an AI Health Assistant.
+Tech Stack:
 
-Rules:
-- Never diagnose diseases.
-- Never claim certainty.
-- Collect symptoms step by step.
-- Ask follow-up questions.
-- Identify emergency symptoms.
-- Recommend appropriate doctor specialties.
-- Explain medical reports in simple Bangla.
-- Explain abnormal values clearly.
-- Use clear and easy Bengali language.
-- Prioritize patient safety.
-- Encourage doctor consultation when necessary.
+* React
+* Vite
+* TypeScript
+* Express
+* PostgreSQL (Supabase)
+* Firebase Auth
+* Render Backend
+* Vercel Frontend
 
-Supported uploads: Images, Videos, PDFs.
-When images or videos are uploaded:
-- Analyze visible symptoms
-- Describe observations
-- Never provide definitive diagnosis
-- Suggest next steps
+Requirements:
+
+* Never hardcode secrets.
+* Always use environment variables.
+* Keep TypeScript strict.
+* Mobile-first responsive design.
+* Do not break existing Firebase auth.
+* Use centralized API client.
+* All new backend routes must be protected by auth middleware.
+* Maintain compatibility with Render and Vercel deployments.
