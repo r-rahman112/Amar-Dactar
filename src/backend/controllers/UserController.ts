@@ -31,6 +31,7 @@ const initDB = async () => {
     try { await query("ALTER TABLE users ADD COLUMN medical_profile_completed_at TIMESTAMP"); } catch (e) {}
     try { await query("ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP"); } catch (e) {}
     try { await query("ALTER TABLE users ADD COLUMN updated_at TIMESTAMP"); } catch (e) {}
+    try { await query("ALTER TABLE users ADD COLUMN suspended_until TIMESTAMP"); } catch (e) {}
 
     // Add indexes for optimization (will fail silently if already exists or db doesn't support IF NOT EXISTS on index easily)
     try { await query("CREATE INDEX idx_users_email ON users(email)"); } catch (e) {}

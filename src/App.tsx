@@ -24,6 +24,8 @@ import { Toaster } from 'react-hot-toast';
 
 import PatientRegistration from './components/PatientRegistration';
 
+import SessionTimeoutManager from './components/SessionTimeoutManager';
+
 export default function App() {
   const { isAuthenticated, user, logout, isLoading } = useAuth();
   const [view, setView] = useState<'landing' | 'consultation' | 'dashboard' | 'upload' | 'doctors' | 'auth' | 'admin' | 'doctorPortal' | 'doctorChat' | 'terms' | 'support' | 'signup'>('landing');
@@ -295,6 +297,7 @@ export default function App() {
   return (
     <>
       <Toaster position="top-center" />
+      <SessionTimeoutManager />
       <Header 
         onStartConsultation={() => handleStartConsultation('symptom')} 
         onOpenDashboard={handleOpenDashboard}

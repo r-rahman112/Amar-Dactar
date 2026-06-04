@@ -5,6 +5,7 @@ import { ShieldCheck, Send, CheckCircle2, AlertCircle, Paperclip, Clock, Lock, I
 import { motion, AnimatePresence } from 'framer-motion';
 import { DoctorInfo } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 interface PaidDoctorChatProps {
   sessionId: string;
@@ -29,6 +30,7 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit, patientId }:
   const [remainingSecs, setRemainingSecs] = useState<number | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isLocked, setIsLocked] = useState(false);
+  const [viewHistory, setViewHistory] = useState(false);
   const [myUserId, setMyUserId] = useState<string>('');
   const [showVault, setShowVault] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -65,12 +67,21 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit, patientId }:
     newSocket.on('session_ended', () => {
        setIsLocked(true);
        setRemainingSecs(0);
+       setViewHistory(false);
+    });
+
+    newSocket.on('content_warning', (warning: string) => {
+       toast(warning, { icon: '🛑', duration: 4000 });
+       // Also re-enable typing if we blocked it ? It's just a warning.
     });
 
     newSocket.on('error', (err) => {
        console.error("Socket Error:", err);
        if (err === 'Session ended') {
           setIsLocked(true);
+          setViewHistory(false);
+       } else {
+          toast.error(err);
        }
     });
 
@@ -82,6 +93,16 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit, patientId }:
   }, [sessionId]);
 
   useEffect(() => {
+    if (remainingSecs === 300) {
+      toast('আপনার ডাক্তারের সাথে পরামর্শ সেশন শেষ হতে আর ৫ মিনিট বাকি। প্রয়োজনে সময় বাড়াতে পারেন।\nYour consultation session will expire in 5 minutes. Extend time if needed.', {
+        icon: '⚠️', duration: 6000, style: { background: '#f59e0b', color: '#fff', textAlign: 'center', maxWidth: '500px' }
+      });
+    } else if (remainingSecs === 60) {
+      toast('পরামর্শ সেশন শেষ হতে আর ১ মিনিট বাকি।\nYour consultation session will end in 1 minute.', {
+        icon: '⏳', duration: 6000, style: { background: '#dc2626', color: '#fff', textAlign: 'center', maxWidth: '500px' }
+      });
+    }
+    
     if (remainingSecs === null || remainingSecs <= 0 || isLocked) return;
     const interval = setInterval(() => {
        setRemainingSecs(prev => {
@@ -108,6 +129,41 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit, patientId }:
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  const handleAdvanceReport = () => {
+    if (window.confirm("Are you sure you want to advance report this user for abusive language?\n\nThey will be banned for 5 days and their purchased credits will be deducted for all time (will not be refunded in any way). The session will be terminated immediately.")) {
+       socket?.emit('advance_report', { sessionId });
+    }
+  };
+
+  if (isLocked && !viewHistory) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-slate-50 p-6 text-center w-full absolute inset-0 z-50">
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 max-w-md w-full">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-red-600 mx-auto mb-6">
+            <Clock className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2 font-display">পরামর্শ সেশনের সময় শেষ হয়েছে</h2>
+          <h3 className="text-lg font-semibold text-slate-700 mb-4 font-display">Consultation Session Expired</h3>
+          
+          <p className="text-slate-600 mb-2 text-sm leading-relaxed">ডাক্তারের সাথে লাইভ পরামর্শ চালিয়ে যেতে অতিরিক্ত সময় ক্রয় করুন অথবা হোম পেজে ফিরে যান।</p>
+          <p className="text-sm text-slate-500 border-b pb-6 mb-6">Purchase additional consultation time to continue chatting with your doctor or return to the home page.</p>
+
+          <div className="flex flex-col gap-3">
+            <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-sm">
+              অতিরিক্ত সময় কিনুন (Purchase More Time)
+            </button>
+            <button onClick={onExit} className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all">
+              হোমে ফিরে যান (Return Home)
+            </button>
+            <button onClick={() => setViewHistory(true)} className="w-full py-3 bg-transparent text-slate-500 hover:text-slate-800 rounded-xl font-medium transition-all text-sm mt-2 flex items-center justify-center gap-2">
+              পূর্ববর্তী চ্যাট দেখুন (View Chat History)
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full bg-slate-50 flex-1 relative">
       <div className="px-5 py-4 border-b border-slate-200 bg-white shadow-sm z-10 flex items-center justify-between shrink-0">
@@ -131,6 +187,12 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit, patientId }:
          </div>
          
          <div className="flex items-center gap-3">
+           {user?.role === 'DOCTOR' && !isLocked && (
+             <button onClick={handleAdvanceReport} className="py-2 px-3 text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm font-semibold text-xs" title="Advance Report (Abusive Patient)">
+               <AlertCircle className="w-3.5 h-3.5" />
+               <span className="hidden sm:inline">Advanced Report</span>
+             </button>
+           )}
            {user?.role === 'DOCTOR' && patientId && !isLocked && (
              <button onClick={() => setShowVault(true)} className="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-full transition-colors flex items-center gap-2 px-4 shadow-sm" title="Patient Vault">
                <FolderHeart className="w-4 h-4" />
@@ -185,15 +247,15 @@ export default function PaidDoctorChat({ sessionId, doctor, onExit, patientId }:
         <div ref={messagesEndRef} />
       </div>
 
-      {isLocked && (
-        <div className="absolute inset-x-0 bottom-24 flex justify-center z-20 px-4">
+      {isLocked && viewHistory && (
+        <div className="absolute inset-x-0 top-20 flex justify-center z-20 px-4">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-amber-100 border border-amber-200 text-amber-900 px-5 py-4 rounded-2xl shadow-xl flex items-center gap-3 max-w-md w-full"
+            className="bg-slate-800/90 backdrop-blur-md border border-slate-700 text-white px-5 py-3 rounded-full shadow-xl flex items-center gap-3 text-sm font-medium"
           >
-            <Lock className="w-6 h-6 text-amber-600 shrink-0" />
-            <p className="text-sm font-semibold">আপনার সেশনের সময় শেষ হয়েছে। পুনরায় পরামর্শ চালিয়ে যেতে নতুন সেশন ক্রয় করুন।</p>
+            <Lock className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Read-only: Session History Preserved</span>
           </motion.div>
         </div>
       )}

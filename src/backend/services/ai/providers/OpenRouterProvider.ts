@@ -3,10 +3,14 @@ import { aiConfig } from '../../../config/aiConfig';
 import { SYMPTOM_PROMPT, REPORT_PROMPT, DOCTOR_PROMPT, SUMMARY_PROMPT } from '../../../prompts';
 
 export class OpenRouterProvider implements AIProvider {
-  private async fetchOpenRouter(messages: ChatMessage[]) {
+  private async fetchOpenRouter(messages: ChatMessage[], maxTokens: number = aiConfig.tokens.generalMedicalChat) {
     if (!aiConfig.openrouter.apiKey) {
       throw new Error("OpenRouter API key is missing");
     }
+
+    console.log(`\n[OPENROUTER REQUEST]`);
+    console.log(`Model being sent: ${aiConfig.openrouter.model}`);
+    console.log(`Tokens limit being sent (max_tokens): ${maxTokens}`);
 
     const response = await fetch(`${aiConfig.openrouter.baseUrl}/chat/completions`, {
       method: 'POST',
@@ -15,8 +19,9 @@ export class OpenRouterProvider implements AIProvider {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-pro', // A default fast model
-        messages: messages
+        model: aiConfig.openrouter.model,
+        messages: messages,
+        max_tokens: maxTokens
       })
     });
 
@@ -26,7 +31,9 @@ export class OpenRouterProvider implements AIProvider {
     }
 
     const data = await response.json();
-    return data.choices[0].message.content as string;
+    let content = data.choices[0].message.content as string;
+    // Strip reasoning <think> blocks
+    return content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
   }
 
   async chatCompletion(messages: ChatMessage[]): Promise<string> {
@@ -46,7 +53,7 @@ export class OpenRouterProvider implements AIProvider {
       { role: 'system', content: REPORT_PROMPT },
       { role: 'user', content: reportText }
     ];
-    return this.fetchOpenRouter(messages);
+    return this.fetchOpenRouter(messages, aiConfig.tokens.detailedReportAnalysis);
   }
 
   async doctorRecommendation(symptoms: string): Promise<string> {

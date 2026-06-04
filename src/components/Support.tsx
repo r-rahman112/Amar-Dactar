@@ -92,6 +92,18 @@ export default function Support({ onBack }: SupportProps) {
         throw new Error(errorMessage);
       }
 
+      // Moderate first
+      const modRes = await fetch('/api/users/support/moderate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: formData.message })
+      });
+      
+      const modData = await modRes.json();
+      if (!modRes.ok) {
+         throw new Error(modData.error || 'Moderation failed');
+      }
+
       const response = await fetch(`${supabaseUrl}/functions/v1/send-support-email`, {
         method: 'POST',
         headers: {

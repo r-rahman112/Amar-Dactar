@@ -403,6 +403,9 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
         }
         
         let rawAiText = data.text || "I'm sorry, I encountered an error and could not process your request.";
+        
+        // Remove any <think> tags or chain-of-thought blocks emitted by AI reasoning models
+        rawAiText = rawAiText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
         let recommendedDoctors: any[] | undefined = undefined;
 
         const escalationMatch = rawAiText.match(/\[ESCALATION_SPECIALTY:\s*([^\]]+)\]/i);
@@ -826,7 +829,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce"></span>
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce [animation-delay:0.2s]"></span>
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce [animation-delay:0.4s]"></span>
-                  <span>আমার ডাক্তার AI evaluating health references...</span>
+                  <span>আপনার তথ্য বিশ্লেষণ করা হচ্ছে...</span>
                 </div>
               </div>
             </motion.div>

@@ -19,6 +19,7 @@ import vaultRoutes from "./src/backend/routes/vault.routes";
 import { setupSocketIO } from "./src/backend/socket";
 
 import { validateEnv } from "./src/backend/config/env";
+import { aiConfig } from "./src/backend/config/aiConfig";
 
 dotenv.config();
 
@@ -93,6 +94,7 @@ async function startServer() {
 
   httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`[AI] Active model: ${aiConfig.openrouter.model}`);
   });
 }
 

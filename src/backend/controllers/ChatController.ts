@@ -3,12 +3,7 @@ import { aiFactory } from '../services/ai/AIFactory';
 import { AuthRequest } from '../middleware/auth';
 import { query } from '../config/db';
 import { SYSTEM_SAFETY_RULES } from '../prompts';
-
-const MODERATION_PROMPT = `
-You are an AI Moderation system. Analyze the following user message for abuse, harassment, hate speech, threats, or excessive offensive language.
-Respond ONLY with a JSON object in this format:
-{"isViolating": boolean, "reason": "short string"}
-`;
+import { ModerationService } from '../services/ModerationService';
 
 export class ChatController {
   static async handleChat(req: AuthRequest, res: Response) {
@@ -28,39 +23,15 @@ export class ChatController {
 
       // Moderation Check for the latest user message
       const latestMessage = messages[messages.length - 1];
-      if (latestMessage && latestMessage.sender === 'user') {
-        const modResponseText = await aiProvider.chatCompletion([
-          { role: 'system', content: MODERATION_PROMPT },
-          { role: 'user', content: latestMessage.text }
-        ]);
-
-        try {
-          const cleanText = modResponseText.replace(/\\n/g, '').replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '');
-          const modResult = JSON.parse(cleanText);
-
-          if (modResult.isViolating) {
-            // Check user violation count in DB
-            const userResult = await query('SELECT violations FROM users WHERE id = $1', [userId]);
-            let violations = 0;
-            if (userResult.rows.length > 0) {
-               violations = userResult.rows[0].violations || 0;
-            }
-
-            violations += 1;
-
-            if (violations === 1) {
-              await query('UPDATE users SET violations = 1 WHERE id = $1', [userId]);
-              return res.json({ 
-                text: "অনুগ্রহ করে শালীন ভাষা ব্যবহার করুন। পুনরায় এমন আচরণ করলে আপনার অ্যাকাউন্ট সাময়িকভাবে সীমাবদ্ধ করা হতে পারে।" 
-              });
-            } else {
-              // Suspend account on second violation
-              await query("UPDATE users SET status = 'suspended', violations = $1 WHERE id = $2", [violations, userId]);
-              return res.status(403).json({ error: "Your account has been suspended due to policy violations. Admin has been notified." });
-            }
+      if (latestMessage && latestMessage.sender === 'user' && latestMessage.text) {
+        const isProfane = await ModerationService.isProrofane(latestMessage.text);
+        if (isProfane) {
+          const modResult = await ModerationService.handleViolation(userId);
+          if (modResult.action === 'warning') {
+            return res.json({ text: modResult.message }); // Send warning instead of AI response
+          } else {
+             return res.status(403).json({ error: modResult.message });
           }
-        } catch (e) {
-          console.error("Moderation parse error: ", e);
         }
       }
       

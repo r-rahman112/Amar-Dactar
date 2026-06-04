@@ -184,8 +184,7 @@ export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
                 </div>
               </div>
               <div className="text-center space-y-1 max-w-sm">
-                <h4 className="font-display font-semibold text-base text-slate-900 leading-none">Consulting AI Knowledge Base</h4>
-                <p className="text-xs text-slate-400">Evaluating descriptions against certified clinical criteria structures...</p>
+                <h4 className="font-display font-semibold text-base text-slate-900 leading-none">আপনার তথ্য বিশ্লেষণ করা হচ্ছে...</h4>
               </div>
               
               {/* Progress visual bar */}

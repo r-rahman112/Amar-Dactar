@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import cookie from 'cookie';
 import { ENV } from './config/env';
 import { createNotification } from './utils/notifications';
+import { ModerationService } from './services/ModerationService';
 
 export function setupSocketIO(server: any) {
   const io = new Server(server, {
@@ -81,6 +82,22 @@ export function setupSocketIO(server: any) {
         return socket.emit('error', 'Session ended');
       }
 
+      // Check moderation
+      if (text) {
+        const isProfane = await ModerationService.isProrofane(text);
+        if (isProfane) {
+          const modResult = await ModerationService.handleViolation(userId);
+          if (modResult.action === 'warning') {
+            return socket.emit('content_warning', modResult.message);
+          } else {
+            // Suspended
+            socket.emit('error', modResult.message);
+            socket.disconnect();
+            return;
+          }
+        }
+      }
+
       const now = Math.floor(Date.now() / 1000);
       if (now - session.start_time >= session.package_minutes * 60) {
         await query('UPDATE paid_sessions SET status = $1 WHERE id = $2', ['completed', sessionId]);
@@ -120,6 +137,23 @@ export function setupSocketIO(server: any) {
     socket.on('typing', ({ sessionId, isTyping }) => {
       const userId = (socket as any).user.id;
       socket.to(`session_${sessionId}`).emit('typing', { userId, isTyping });
+    });
+
+    socket.on('advance_report', async ({ sessionId }) => {
+      const userId = (socket as any).user.id;
+      const role = (socket as any).user.role;
+      if (role !== 'doctor') return;
+
+      const res = await query('SELECT * FROM paid_sessions WHERE id = $1', [sessionId]);
+      if (res.rowCount === 0) return;
+      const session = res.rows[0];
+
+      if (session.doctor_id !== userId) return;
+
+      await ModerationService.advanceDoctorReport(session.patient_id);
+      
+      await query('UPDATE paid_sessions SET status = $1 WHERE id = $2', ['completed', sessionId]);
+      io.to(`session_${sessionId}`).emit('session_ended', { sessionId, reason: 'advance_report' });
     });
 
     socket.on('disconnect', () => {

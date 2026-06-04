@@ -109,4 +109,25 @@ router.patch('/doctor-verifications/:doctorId', authenticateToken, isAdmin, admi
 router.post('/request-otp', forgotPasswordLimiter, validateRequest(requestOtpSchema), UserController.requestOtp);
 router.post('/verify-otp', otpLimiter, validateRequest(verifyOtpSchema), UserController.verifyOtp);
 
+import { ModerationService } from '../services/ModerationService';
+
+router.post('/support/moderate', authenticateToken, async (req: any, res: any) => {
+  const { message } = req.body;
+  const userId = req.user?.id;
+  
+  if (message && userId) {
+    const isProfane = await ModerationService.isProrofane(message);
+    if (isProfane) {
+      const modResult = await ModerationService.handleViolation(userId);
+      if (modResult.action === 'warning') {
+        return res.status(400).json({ error: modResult.message });
+      } else {
+        return res.status(403).json({ error: modResult.message });
+      }
+    }
+  }
+
+  res.json({ success: true });
+});
+
 export default router;
