@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, User, Phone, ArrowLeft, ShieldCheck, Eye, EyeOff, Activity } from 'lucide-react';
+import { Mail, Lock, User, Phone, ArrowLeft, ShieldCheck, Eye, EyeOff, Activity, AlertCircle } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import BrandLogo from './BrandLogo';
@@ -227,8 +227,9 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess, initialView =
         </AnimatePresence>
 
         {errorMsg && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-sm font-medium rounded-xl text-center shadow-sm">
-            {errorMsg}
+          <div role="alert" aria-live="assertive" className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm font-medium rounded-xl flex items-start gap-2 shadow-sm text-left">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-500" aria-hidden="true" />
+            <span className="w-full break-words space-y-1">{errorMsg}</span>
           </div>
         )}
 

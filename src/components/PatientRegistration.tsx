@@ -43,6 +43,7 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
   const [step, setStep] = useState(initialStep || 1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
 
   // Form Data
@@ -93,8 +94,7 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
     length: false,
     upper: false,
     lower: false,
-    num: false,
-    special: false
+    num: false
   });
   const [passStrength, setPassStrength] = useState<number>(0);
 
@@ -106,7 +106,6 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
       upper: /[A-Z]/.test(p),
       lower: /[a-z]/.test(p),
       num: /[0-9]/.test(p),
-      special: /[^A-Za-z0-9]/.test(p)
     };
     setPassReqs(reqs);
 
@@ -154,25 +153,101 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (errorMsg) setErrorMsg(null);
+    if (fieldErrors[e.target.name]) {
+      setFieldErrors(prev => ({ ...prev, [e.target.name]: '' }));
+    }
   };
 
   const getStrengthLabel = () => {
     if (passStrength <= 1) return { label: 'Very Weak', color: 'bg-red-500', text: 'text-red-600' };
-    if (passStrength === 2 || passStrength === 3) return { label: 'Medium', color: 'bg-amber-400', text: 'text-amber-600' };
-    if (passStrength === 4) return { label: 'Strong', color: 'bg-emerald-500', text: 'text-emerald-600' };
+    if (passStrength === 2) return { label: 'Medium', color: 'bg-amber-400', text: 'text-amber-600' };
+    if (passStrength === 3) return { label: 'Strong', color: 'bg-emerald-500', text: 'text-emerald-600' };
     return { label: t('Very Strong'), color: 'bg-emerald-600', text: 'text-emerald-700' };
+  };
+
+  const handleBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (!value) return;
+
+    if (name === 'email') {
+      try {
+         const res = await apiClient(`/api/users/check-email?email=${encodeURIComponent(value)}`);
+         if (res.ok) {
+           const data = await res.json();
+           if (data.exists) {
+             setFieldErrors(prev => ({ ...prev, email: language === 'bn' ? "ইমেইল ইতিমধ্যে নিবন্ধিত হয়েছে।" : "This Email has already registered" }));
+           }
+         }
+      } catch(e) {}
+    }
+
+    if (name === 'mobile') {
+      try {
+         const res = await apiClient(`/api/users/check-mobile?mobile=${encodeURIComponent(value)}`);
+         if (res.ok) {
+           const data = await res.json();
+           if (data.exists) {
+             setFieldErrors(prev => ({ ...prev, mobile: t("মোবাইল নম্বর ইতিমধ্যে নিবন্ধিত হয়েছে।") }));
+           }
+         }
+      } catch(e) {}
+    }
   };
 
   const strengthInfo = getStrengthLabel();
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     setErrorMsg(null);
     if (step === 1) {
+      if (fieldErrors.email || fieldErrors.mobile) return; // Prevent next if errors persist
+
       try {
         step1Schema.parse(formData);
-        if (passStrength < 5) {
+        if (passStrength < 4) {
            setErrorMsg(t('Password must meet all requirements.'));
            return;
+        }
+
+        let hasError = false;
+        const newFieldErrors = { ...fieldErrors };
+        
+        if (formData.email) {
+          setLoading(true);
+          try {
+             const res = await apiClient(`/api/users/check-email?email=${encodeURIComponent(formData.email)}`);
+             if (res.ok) {
+               const data = await res.json();
+               if (data.exists) {
+                 newFieldErrors.email = language === 'bn' ? "ইমেইল ইতিমধ্যে নিবন্ধিত হয়েছে।" : "This Email has already registered";
+                 hasError = true;
+               }
+             }
+          } catch(e) {
+             console.error(e);
+          }
+          setLoading(false);
+        }
+        
+        if (formData.mobile) {
+          setLoading(true);
+          try {
+             const res = await apiClient(`/api/users/check-mobile?mobile=${encodeURIComponent(formData.mobile)}`);
+             if (res.ok) {
+               const data = await res.json();
+               if (data.exists) {
+                 newFieldErrors.mobile = t("মোবাইল নম্বর ইতিমধ্যে নিবন্ধিত হয়েছে।");
+                 hasError = true;
+               }
+             }
+          } catch(e) {
+             console.error(e);
+          }
+          setLoading(false);
+        }
+
+        if (hasError) {
+          setFieldErrors(newFieldErrors);
+          return;
         }
       } catch (err: any) {
         if (err instanceof z.ZodError) {
@@ -182,12 +257,32 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
       }
     }
     if (step === 2) {
+      if (fieldErrors.mobile) return;
+
       try {
         const payload = {
           ...formData,
           mobile: isCompletingProfile ? formData.mobile : undefined
         };
         step2Schema.parse(payload);
+        
+        if (isCompletingProfile && formData.mobile) {
+          setLoading(true);
+          try {
+             const res = await apiClient(`/api/users/check-mobile?mobile=${encodeURIComponent(formData.mobile)}`);
+             if (res.ok) {
+               const data = await res.json();
+               if (data.exists) {
+                 setFieldErrors(prev => ({...prev, mobile: t("মোবাইল নম্বর ইতিমধ্যে নিবন্ধিত হয়েছে।")}));
+                 setLoading(false);
+                 return;
+               }
+             }
+          } catch(e) {
+             console.error(e);
+          }
+          setLoading(false);
+        }
       } catch (err: any) {
         if (err instanceof z.ZodError) {
           setErrorMsg(t(err.issues[0].message));
@@ -336,9 +431,9 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
       <div className="p-6 md:p-8">
         
         {errorMsg && (
-          <motion.div initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} className="mb-6 p-4 bg-red-50 text-red-600 text-sm font-semibold rounded-2xl flex items-center gap-3">
-            <AlertCircle className="w-5 h-5" />
-            {errorMsg}
+          <motion.div role="alert" aria-live="assertive" initial={{ opacity:0, y:-10 }} animate={{ opacity:1, y:0 }} className="mb-6 p-4 bg-red-50 text-red-700 text-sm font-semibold rounded-2xl flex items-start gap-3 border border-red-200">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-500" aria-hidden="true" />
+            <span className="break-words w-full space-y-1">{errorMsg}</span>
           </motion.div>
         )}
 
@@ -363,15 +458,45 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
                     <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Mobile Number')}<span className="text-red-500">*</span></label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                      <input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} placeholder={t("01XXXXXXXXX")} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium" />
+                      <input 
+                        type="tel" 
+                        name="mobile" 
+                        value={formData.mobile} 
+                        onChange={handleChange} 
+                        onBlur={handleBlur}
+                        placeholder={t("01XXXXXXXXX")} 
+                        aria-invalid={!!fieldErrors.mobile}
+                        className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border rounded-2xl transition-all font-medium ${fieldErrors.mobile ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'}`} 
+                      />
                     </div>
+                    {fieldErrors.mobile && (
+                      <p className="text-sm font-medium text-red-600 mt-2 flex items-start gap-1.5 break-words" role="alert">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        {fieldErrors.mobile}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Email Address')}<span className="text-red-500">*</span></label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                      <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder={t("Your Email")} className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium" />
+                      <input 
+                        type="email" 
+                        name="email" 
+                        value={formData.email} 
+                        onChange={handleChange} 
+                        onBlur={handleBlur}
+                        placeholder={t("Your Email")} 
+                        aria-invalid={!!fieldErrors.email}
+                        className={`w-full pl-11 pr-4 py-3.5 bg-slate-50 border rounded-2xl transition-all font-medium ${fieldErrors.email ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'}`} 
+                      />
                     </div>
+                    {fieldErrors.email && (
+                      <p className="text-sm font-medium text-red-600 mt-2 flex items-start gap-1.5 break-words" role="alert">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        {fieldErrors.email}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -393,17 +518,15 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
                         <div className={`h-full flex-1 transition-colors duration-300 ${passStrength >= 2 ? strengthInfo.color : ''}`}></div>
                         <div className={`h-full flex-1 transition-colors duration-300 ${passStrength >= 3 ? strengthInfo.color : ''}`}></div>
                         <div className={`h-full flex-1 transition-colors duration-300 ${passStrength >= 4 ? strengthInfo.color : ''}`}></div>
-                        <div className={`h-full flex-1 transition-colors duration-300 ${passStrength >= 5 ? strengthInfo.color : ''}`}></div>
                       </div>
                       <p className={`text-xs mt-1.5 font-bold ${strengthInfo.text}`}>{strengthInfo.label} {t('Password')}</p>
                       
                       {/* Requirements */}
-                      <ul className="mt-2 text-xs text-slate-500 grid grid-cols-2 lg:grid-cols-3 gap-y-1">
+                      <ul className="mt-2 text-xs text-slate-500 grid grid-cols-2 gap-y-1">
                          <li className="flex items-center gap-1.5"><Check className={`w-3.5 h-3.5 ${passReqs.length ? 'text-emerald-500' : 'text-slate-300'}`}/> {t('8 characters')}</li>
                          <li className="flex items-center gap-1.5"><Check className={`w-3.5 h-3.5 ${passReqs.upper ? 'text-emerald-500' : 'text-slate-300'}`}/> {t('Uppercase (A-Z)')}</li>
                          <li className="flex items-center gap-1.5"><Check className={`w-3.5 h-3.5 ${passReqs.lower ? 'text-emerald-500' : 'text-slate-300'}`}/> {t('Lowercase (a-z)')}</li>
                          <li className="flex items-center gap-1.5"><Check className={`w-3.5 h-3.5 ${passReqs.num ? 'text-emerald-500' : 'text-slate-300'}`}/> {t('Number (0-9)')}</li>
-                         <li className="flex items-center gap-1.5 col-span-2"><Check className={`w-3.5 h-3.5 ${passReqs.special ? 'text-emerald-500' : 'text-slate-300'}`}/> {t('Special character (!@#$%)')}</li>
                       </ul>
                     </div>
                   )}
@@ -413,8 +536,22 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
                   <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Confirm Password')}<span className="text-red-500">*</span></label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <input type={showPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder={t("Re-enter password")} className="w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium tracking-wide" />
+                    <input 
+                      type={showPassword ? 'text' : 'password'} 
+                      name="confirmPassword" 
+                      value={formData.confirmPassword} 
+                      onChange={handleChange} 
+                      placeholder={t("Re-enter password")} 
+                      aria-invalid={formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword ? "true" : "false"}
+                      className={`w-full pl-11 pr-12 py-3.5 bg-slate-50 border rounded-2xl transition-all font-medium tracking-wide ${formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'}`} 
+                    />
                   </div>
+                  {formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword && (
+                    <p className="text-sm font-medium text-red-600 mt-2 flex items-start gap-1.5 break-words" role="alert">
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                      {t('Passwords do not match')}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -431,7 +568,22 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
                   {isCompletingProfile && (
                     <div className="col-span-1 md:col-span-2">
                        <label className="block text-sm font-semibold text-slate-700 mb-2">{t('Your Mobile Number')}<span className="text-red-500">*</span></label>
-                       <input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="01XXX-XXXXXX" className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium" />
+                       <input 
+                         type="tel" 
+                         name="mobile" 
+                         value={formData.mobile} 
+                         onChange={handleChange} 
+                         onBlur={handleBlur}
+                         placeholder="01XXX-XXXXXX" 
+                         aria-invalid={!!fieldErrors.mobile}
+                         className={`w-full px-4 py-3 bg-white border rounded-xl transition-all font-medium ${fieldErrors.mobile ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'}`} 
+                       />
+                       {fieldErrors.mobile && (
+                         <p className="text-sm font-medium text-red-600 mt-2 flex items-start gap-1.5 break-words" role="alert">
+                           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                           {fieldErrors.mobile}
+                         </p>
+                       )}
                     </div>
                   )}
                   <div>

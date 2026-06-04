@@ -6,6 +6,22 @@ import { query } from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import { ENV } from '../config/env';
 
+
+const handleDBError = (e: any, res: Response) => {
+  console.error('[DB Error]', e.message);
+  if (e.message?.includes('duplicate key value violates unique constraint')) {
+    if (e.message?.includes('users_email_key') || e.message?.includes('users_email_unique')) {
+      return res.status(400).json({ error: 'This email has already been registered. / ইমেইল ইতিমধ্যে নিবন্ধিত হয়েছে।' });
+    }
+    if (e.message?.includes('users_mobile_key') || e.message?.includes('users_mobile_unique')) {
+      return res.status(400).json({ error: 'This mobile number has already been registered. / মোবাইল নম্বর ইতিমধ্যে নিবন্ধিত হয়েছে।' });
+    }
+    return res.status(400).json({ error: 'A record with this information already exists.' });
+  }
+  return res.status(500).json({ error: 'An unexpected database error occurred. Please try again later.' });
+};
+
+
 // Auto-create users table for preview robustness
 const initDB = async () => {
   try {
@@ -308,7 +324,7 @@ export class UserController {
 
       res.json({ user: { id: user.id, email: user.email, role: user.role, fullName: user.fullname || user.full_name, profileCompleted: user.profile_completed } });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -374,12 +390,36 @@ export class UserController {
     }
   }
 
+  static async checkMobile(req: Request, res: Response) {
+    try {
+      const mobile = req.query.mobile as string;
+      if (!mobile) return res.status(400).json({ error: 'Mobile number required' });
+      
+      const result = await query('SELECT 1 FROM users WHERE mobile = $1 LIMIT 1', [mobile]);
+      res.json({ exists: !!(result && result.rowCount && result.rowCount > 0) });
+    } catch (e: any) {
+      handleDBError(e, res);
+    }
+  }
+
+  static async checkEmail(req: Request, res: Response) {
+    try {
+      const email = req.query.email as string;
+      if (!email) return res.status(400).json({ error: 'Email required' });
+      
+      const result = await query('SELECT 1 FROM users WHERE email = $1 LIMIT 1', [email]);
+      res.json({ exists: !!(result && result.rowCount && result.rowCount > 0) });
+    } catch (e: any) {
+      handleDBError(e, res);
+    }
+  }
+
   static async getUsers(req: AuthRequest, res: Response) {
     try {
       const result = await query('SELECT id, fullName, email, mobile, role, status, violations, profile, createdAt FROM users');
       res.json(result.rows);
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -388,6 +428,21 @@ export class UserController {
       const { fullName, email, password, mobile, profile, hasAcceptedConsent } = req.body;
       const role = 'user'; // Force role to user for public registrations
       
+      // Explicit backend validation check
+      if (email) {
+        const emailCheck = await query('SELECT 1 FROM users WHERE email = $1 LIMIT 1', [email]);
+        if (emailCheck && emailCheck.rowCount && emailCheck.rowCount > 0) {
+          return res.status(400).json({ error: 'This Email has already registered / ইমেইল ইতিমধ্যে নিবন্ধিত হয়েছে।' });
+        }
+      }
+      
+      if (mobile) {
+        const mobileCheck = await query('SELECT 1 FROM users WHERE mobile = $1 LIMIT 1', [mobile]);
+        if (mobileCheck && mobileCheck.rowCount && mobileCheck.rowCount > 0) {
+          return res.status(400).json({ error: 'This Mobile number has already registered / মোবাইল নম্বর ইতিমধ্যে নিবন্ধিত হয়েছে।' });
+        }
+      }
+
       const hash = await bcrypt.hash(password, 10);
       const id = uuidv4();
       const profileString = profile ? JSON.stringify(profile) : null;
@@ -405,7 +460,7 @@ export class UserController {
 
       res.json({ success: true, id });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -428,7 +483,7 @@ export class UserController {
 
       res.json({ success: true, id });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -451,7 +506,7 @@ export class UserController {
 
       res.json({ success: true, id });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -474,7 +529,7 @@ export class UserController {
 
       res.json({ success: true, id });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -495,7 +550,7 @@ export class UserController {
 
       res.json({ success: true });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -516,7 +571,7 @@ export class UserController {
 
       res.json({ success: true });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -536,7 +591,7 @@ export class UserController {
 
       res.json({ success: true });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -558,7 +613,7 @@ export class UserController {
 
       res.json({ success: true });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -659,7 +714,7 @@ export class UserController {
 
       res.json({ success: true, user: { id: user.id, email: user.email, role: user.role, fullName: user.fullname || user.full_name, profileCompleted: user.profile_completed } });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -672,6 +727,13 @@ export class UserController {
          return res.status(400).json({ error: 'Missing required profile data.' });
       }
 
+      if (mobile) {
+        const mobileCheck = await query('SELECT 1 FROM users WHERE mobile = $1 AND id != $2 LIMIT 1', [mobile, req.user.id]);
+        if (mobileCheck && mobileCheck.rowCount && mobileCheck.rowCount > 0) {
+          return res.status(400).json({ error: 'This Mobile number has already registered / মোবাইল নম্বর ইতিমধ্যে নিবন্ধিত হয়েছে।' });
+        }
+      }
+
       await query(
         'UPDATE users SET mobile = $1, profile = $2, profile_completed = true, medical_profile_completed_at = CURRENT_TIMESTAMP WHERE id = $3',
         [mobile || null, JSON.stringify(profile), req.user.id]
@@ -682,7 +744,7 @@ export class UserController {
 
       res.json({ success: true, user: { id: updatedUser.id, email: updatedUser.email, role: updatedUser.role, fullName: updatedUser.fullname || updatedUser.full_name, profileCompleted: true } });
     } catch(e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -721,7 +783,7 @@ export class UserController {
 
       res.json({ success: true, message: 'OTP sent successfully' });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 
@@ -771,7 +833,7 @@ export class UserController {
       // Handle specifics: if password_reset, maybe return a token to reset it, or reset it directly if new password provided.
       res.json({ success: true, message: 'OTP verified successfully' });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      handleDBError(e, res);
     }
   }
 }

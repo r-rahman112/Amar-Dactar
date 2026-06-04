@@ -2,6 +2,22 @@ import { query } from '../config/db';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
+
+const handleDBError = (e: any, res: any) => {
+  console.error('[DB Error]', e.message);
+  if (e.message?.includes('duplicate key value violates unique constraint')) {
+    if (e.message?.includes('users_email_key') || e.message?.includes('users_email_unique')) {
+      return res.status(400).json({ error: 'This Email has already registered / ইমেইল ইতিমধ্যে নিবন্ধিত হয়েছে।' });
+    }
+    if (e.message?.includes('users_mobile_key') || e.message?.includes('users_mobile_unique')) {
+      return res.status(400).json({ error: 'This Mobile number has already registered / মোবাইল নম্বর ইতিমধ্যে নিবন্ধিত হয়েছে।' });
+    }
+    return res.status(400).json({ error: 'A record with this information already exists.' });
+  }
+  return res.status(500).json({ error: 'An unexpected database error occurred. Please try again later.' });
+};
+
+
 // ... (existing imports, but need to reconstruct standard ones since this is top of file)
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
@@ -28,6 +44,8 @@ router.post('/complete-profile', authenticateToken, UserController.completeProfi
 router.post('/logout', authenticateToken, UserController.logout);
 router.post('/refresh', UserController.refresh);
 router.get('/me', authenticateToken, UserController.getMe);
+router.get('/check-mobile', UserController.checkMobile);
+router.get('/check-email', UserController.checkEmail);
 router.post('/', signupLimiter, optionalAuthenticateToken, validateRequest(signupSchema), UserController.createUser);
 
 // Super Admin Only
@@ -58,7 +76,7 @@ router.post('/appeal-ban', forgotPasswordLimiter, validateRequest(appealSchema),
     await createAdminNotification('BAN_APPEAL', `User ${email} appealed ban. Reason: ${reason}`);
     res.json({ success: true, message: 'Appeal submitted successfully.' });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    handleDBError(err, res);
   }
 });
 
@@ -73,7 +91,7 @@ router.get('/doctor-verifications', authenticateToken, isAssistantAdmin, adminAp
     `);
     res.json(result.rows);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    handleDBError(err, res);
   }
 });
 
@@ -102,7 +120,7 @@ router.patch('/doctor-verifications/:doctorId', authenticateToken, isAdmin, admi
 
     res.json({ success: true });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    handleDBError(err, res);
   }
 });
 

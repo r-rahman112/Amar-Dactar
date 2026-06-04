@@ -210,13 +210,13 @@ export default function Support({ onBack }: SupportProps) {
               )}
 
               {errorStatus && (
-                <div className="mb-8 p-6 bg-red-50 rounded-2xl border border-red-100 flex items-start space-x-4">
-                  <div className="bg-red-100 p-2 rounded-full text-red-600 shrink-0">
+                <div role="alert" aria-live="assertive" className="mb-8 p-6 bg-red-50 rounded-2xl border border-red-200 flex items-start space-x-4">
+                  <div className="bg-red-100 p-2 rounded-full text-red-600 shrink-0" aria-hidden="true">
                     <AlertCircle className="w-6 h-6" />
                   </div>
-                  <div>
+                  <div className="w-full min-w-0">
                     <h3 className="font-bold text-red-900 text-lg mb-1">{t('Error')}</h3>
-                    <p className="text-red-700 font-medium">{errorMessage}</p>
+                    <p className="text-red-700 font-medium break-words space-y-1">{errorMessage}</p>
                   </div>
                 </div>
               )}

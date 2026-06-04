@@ -103,6 +103,7 @@
   "Please enter a valid mobile number (e.g., 01xxxxxxxxx).": "অনুগ্রহ করে একটি সঠিক মোবাইল নম্বর দিন (যেমন: 01xxxxxxxxx)।",
   "Password must meet all requirements.": "পাসওয়ার্ডকে অবশ্যই সমস্ত শর্ত পূরণ করতে হবে।",
   "Passwords do not match.": "পাসওয়ার্ড মিলছে না।",
+  "Passwords do not match": "পাসওয়ার্ড দুটি মিলছে না।",
   "Please fill out basic info and emergency contact.": "অনুগ্রহ করে প্রাথমিক তথ্য এবং জরুরি যোগাযোগের ঘরগুলো পূরণ করুন।",
   "Amar Daktar": "আমার ডাক্তার",
   "Welcome back": "স্বাগতম",
