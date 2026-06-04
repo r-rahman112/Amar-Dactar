@@ -21,8 +21,8 @@ router.get('/debug-model', async (req, res) => {
       headers: {
         'Authorization': `Bearer ${aiConfig.openrouter.apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://localhost:3000', // Usually needed for openrouter
-        'X-Title': 'Debug'
+        'HTTP-Referer': process.env.APP_URL || process.env.VITE_SUPABASE_URL || 'https://amar-dactar.com',
+        'X-Title': 'Amar Dactar Debug'
       },
       body: JSON.stringify({
         model: requestedModel,

@@ -11,7 +11,7 @@ const createVaultRecordSchema = z.object({
   body: z.object({
     title: z.string().min(1),
     category: z.string().min(1),
-    file_url: z.string().url().or(z.string().startsWith('/uploads/')),
+    file_url: z.string().url(),
     mimetype: z.string().optional(),
     size: z.number().optional()
   })

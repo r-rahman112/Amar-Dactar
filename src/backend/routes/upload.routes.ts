@@ -9,7 +9,7 @@ const router = Router();
 // Ensure supabase is initialized if ENV vars exist (it will fail cleanly later otherwise)
 const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 router.post('/file', authenticateToken, upload.single('file'), validateMagicBytes as any, async (req: any, res) => {
   try {
@@ -17,7 +17,7 @@ router.post('/file', authenticateToken, upload.single('file'), validateMagicByte
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!supabase) {
       return res.status(500).json({ error: 'Supabase storage is not configured' });
     }
 
@@ -43,7 +43,7 @@ router.post('/file', authenticateToken, upload.single('file'), validateMagicByte
 
     res.json({ 
       success: true, 
-      url: publicUrlData.publicUrl || `/uploads/${uniqueFilename}`, // Fallback if publicUrl fails
+      url: publicUrlData.publicUrl,
       storagePath: data.path,
       mimetype: req.file.mimetype,
       filename: req.file.originalname 
