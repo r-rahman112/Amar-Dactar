@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from '../contexts/LanguageContext';
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock } from 'lucide-react';
+import { apiClient } from '../apiClient';
 
 export default function DoctorScheduleManager() {  const { t } = useTranslation();
 
@@ -22,7 +23,7 @@ export default function DoctorScheduleManager() {  const { t } = useTranslation(
 
   const fetchSchedule = async () => {
     try {
-      const res = await fetch('/api/appointments/schedule', {
+      const res = await apiClient('/api/appointments/schedule', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) {
@@ -43,7 +44,7 @@ export default function DoctorScheduleManager() {  const { t } = useTranslation(
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/appointments/schedule', {
+      const res = await apiClient('/api/appointments/schedule', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

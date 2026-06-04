@@ -12,6 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 import DoctorScheduleManager from './DoctorScheduleManager';
 import DoctorAppointmentsView from './DoctorAppointmentsView';
 import AnimatedCounter from './AnimatedCounter';
+import { apiClient } from '../apiClient';
 
 interface DoctorDashboardProps {
   onLogout: () => void;
@@ -35,7 +36,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
 
   const fetchVerification = async () => {
     try {
-      const res = await fetch('/api/doctors/verify/status', {
+      const res = await apiClient('/api/doctors/verify/status', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) {
@@ -47,7 +48,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
   const uploadFile = async (file: File) => {
     const fd = new FormData();
     fd.append('file', file);
-    const res = await fetch('/api/upload/file', {
+    const res = await apiClient('/api/upload/file', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       body: fd
@@ -89,7 +90,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
       if(nidBackFile) payload.nid_back_url = await uploadFile(nidBackFile);
       if(photoFile) payload.photo_url = await uploadFile(photoFile);
 
-      const res = await fetch('/api/doctors/verify/upload', {
+      const res = await apiClient('/api/doctors/verify/upload', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -118,8 +119,8 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
 
 
       const [statsRes, patientsRes] = await Promise.all([
-        fetch('/api/doctors/dashboard/stats', { headers }),
-        fetch('/api/doctors/dashboard/patients', { headers })
+        apiClient('/api/doctors/dashboard/stats', { headers }),
+        apiClient('/api/doctors/dashboard/patients', { headers })
       ]);
 
       if (statsRes.ok) {

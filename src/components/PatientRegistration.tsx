@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, ArrowLeft, Check, Eye, EyeOff, User, Mail, Phone, Lock, Activity, AlertCircle, ShieldCheck } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import { z } from 'zod';
+import { apiClient } from '../apiClient';
 
 const step1Schema = z.object({
   fullName: z.string().min(1, 'Full Name is required'),
@@ -252,7 +253,7 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
       };
 
       if (isCompletingProfile) {
-        const res = await fetch('/api/users/complete-profile', {
+        const res = await apiClient('/api/users/complete-profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -265,7 +266,7 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
         login(data.user);
         onSuccess();
       } else {
-        const res = await fetch('/api/users', {
+        const res = await apiClient('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -282,7 +283,7 @@ export default function PatientRegistration({ onSuccess, onLoginClick, isComplet
         if (!res.ok) throw new Error(data.error || 'Registration failed');
         
         // Auto-login
-        const loginRes = await fetch('/api/users/login', {
+        const loginRes = await apiClient('/api/users/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: formData.email, password: formData.password })

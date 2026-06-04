@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { CheckCircle2, XCircle, User } from 'lucide-react';
+import { apiClient } from '../apiClient';
 
 export default function DoctorAppointmentsView() {  const { t } = useTranslation();
 
@@ -13,7 +14,7 @@ export default function DoctorAppointmentsView() {  const { t } = useTranslation
 
   const fetchAppointments = async () => {
     try {
-      const res = await fetch('/api/appointments/doctor', {
+      const res = await apiClient('/api/appointments/doctor', {
          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) {
@@ -26,7 +27,7 @@ export default function DoctorAppointmentsView() {  const { t } = useTranslation
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      const res = await fetch(`/api/appointments/${id}/status`, {
+      const res = await apiClient(`/api/appointments/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

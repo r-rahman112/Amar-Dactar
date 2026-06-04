@@ -3,6 +3,7 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Clock } from 'lucide-react';
+import { apiClient } from '../apiClient';
 
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 const WARNING_BEFORE = 5 * 60 * 1000; // Show warning 5 minutes before expiration
@@ -33,7 +34,7 @@ export default function SessionTimeoutManager() {
     // Also ping the server to keep the session alive if necessary, 
     // but the JWT token expiration is handled on backend. 
     // A simple endpoint fetch could be done here if needed.
-    fetch('/api/users/me').catch(e => console.error("Failed to extend session via ping:", e));
+    apiClient('/api/users/me').catch(e => console.error("Failed to extend session via ping:", e));
   };
 
   const handleLogout = useCallback(() => {

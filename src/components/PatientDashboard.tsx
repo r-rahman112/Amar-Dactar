@@ -27,6 +27,7 @@ import {
 import { useTranslation } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import BrandLogo from './BrandLogo';
+import { apiClient } from '../apiClient';
 
 interface PatientDashboardProps {
   onBackToHome: () => void;
@@ -45,7 +46,7 @@ export default function PatientDashboard({ onBackToHome, onStartConsultation, on
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const res = await fetch('/api/appointments/patient', {
+        const res = await apiClient('/api/appointments/patient', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         if(res.ok) setAppointments(await res.json());

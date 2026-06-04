@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Calendar as CalendarIcon, Clock, Video, MapPin, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
+import { apiClient } from '../apiClient';
 
 interface Doctor {
   id: string;
@@ -44,7 +45,7 @@ export default function AppointmentBooking({ doctor, isOpen, onClose }: Appointm
   const fetchSchedule = async () => {
     setLoadingSchedule(true);
     try {
-      const res = await fetch(`/api/appointments/doctor-schedule/${doctor?.id}`, {
+      const res = await apiClient(`/api/appointments/doctor-schedule/${doctor?.id}`, {
          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) setSchedule(await res.json());
@@ -57,7 +58,7 @@ export default function AppointmentBooking({ doctor, isOpen, onClose }: Appointm
     if(!selectedDate || !doctor) return;
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
-      const res = await fetch(`/api/appointments/doctor/${doctor.id}/slots?date=${dateStr}`, {
+      const res = await apiClient(`/api/appointments/doctor/${doctor.id}/slots?date=${dateStr}`, {
          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) setBookedSlots(await res.json());
@@ -146,7 +147,7 @@ export default function AppointmentBooking({ doctor, isOpen, onClose }: Appointm
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
       const endTime = calculateEndTime(selectedTime);
-      const res = await fetch('/api/appointments/book', {
+      const res = await apiClient('/api/appointments/book', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

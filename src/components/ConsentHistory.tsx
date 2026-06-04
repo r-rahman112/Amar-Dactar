@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ShieldCheck, Info } from 'lucide-react';
+import { apiClient } from '../apiClient';
 
 type ConsentRecord = {
   id: string;
@@ -22,7 +23,7 @@ export default function ConsentHistory() {
 
   const fetchRecords = async () => {
     try {
-      const res = await fetch('/api/admin/consents', {
+      const res = await apiClient('/api/admin/consents', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await res.json();

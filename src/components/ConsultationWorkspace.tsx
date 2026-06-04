@@ -31,6 +31,7 @@ import BrandLogo from './BrandLogo';
 import PaymentModal from './PaymentModal';
 import PaidDoctorChat from './PaidDoctorChat';
 import ConsultationScheduler from './ConsultationScheduler';
+import { apiClient } from '../apiClient';
 
 interface ConsultationWorkspaceProps {
   onBackToHome: () => void;
@@ -389,7 +390,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
 
     const fetchAIResponse = async () => {
       try {
-        const response = await fetch('/api/ai/chat', {
+        const response = await apiClient('/api/ai/chat', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json'
@@ -414,7 +415,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
           rawAiText = rawAiText.replace(/\[ESCALATION_SPECIALTY:\s*([^\]]+)\]/i, '').trim();
           
           try {
-             const docRes = await fetch(`/api/doctors/search?specialty=${encodeURIComponent(specialty)}`);
+             const docRes = await apiClient(`/api/doctors/search?specialty=${encodeURIComponent(specialty)}`);
              if (docRes.ok) {
                recommendedDoctors = await docRes.json();
              }
@@ -1016,7 +1017,7 @@ export default function ConsultationWorkspace({ onBackToHome, initialUploadType 
           onScheduleSelected={async (date, time, endTime) => {
              setSchedulerDoctor(null);
              try {
-               const res = await fetch('/api/appointments/book', {
+               const res = await apiClient('/api/appointments/book', {
                  method: 'POST',
                  headers: {
                    'Content-Type': 'application/json',

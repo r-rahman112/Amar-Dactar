@@ -3,6 +3,7 @@ import { ArrowLeft, MessageSquare, HeadphonesIcon, HelpCircle, AlertCircle, Chec
 import { useTranslation } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 import { motion } from 'motion/react';
+import { apiClient } from '../apiClient';
 
 interface SupportProps {
   onBack: () => void;
@@ -93,7 +94,7 @@ export default function Support({ onBack }: SupportProps) {
       }
 
       // Moderate first
-      const modRes = await fetch('/api/users/support/moderate', {
+      const modRes = await apiClient('/api/users/support/moderate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: formData.message })

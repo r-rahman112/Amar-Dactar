@@ -11,6 +11,7 @@ import {
   signInWithPopup,
   signInWithRedirect
 } from "firebase/auth";
+import { apiClient } from '../apiClient';
 type AuthView = 'login' | 'register' | 'forgot-password' | 'verify-otp';
 
 interface AuthUIProps {
@@ -69,7 +70,7 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess, initialView =
 
     try {
       if (view === 'login') {
-        const res = await fetch('/api/users/login', {
+        const res = await apiClient('/api/users/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: formData.email, password: formData.password })
@@ -81,7 +82,7 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess, initialView =
       } else if (view === 'register') {
         // ... handled in PatientRegistration component initially mapped to 'register' ...
       } else if (view === 'forgot-password') {
-        const res = await fetch('/api/users/request-otp', {
+        const res = await apiClient('/api/users/request-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ identifier: formData.email, type: 'password_reset' })
@@ -90,7 +91,7 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess, initialView =
         if (!res.ok) throw new Error(data.error || 'Failed to request OTP');
         setView('verify-otp');
       } else if (view === 'verify-otp') {
-        const res = await fetch('/api/users/verify-otp', {
+        const res = await apiClient('/api/users/verify-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ identifier: formData.email, type: 'password_reset', otp: formData.otp.join('') })
@@ -144,7 +145,7 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess, initialView =
          providerName = dataContext!.provider;
       }
       
-      const res = await fetch('/api/users/social-login', {
+      const res = await apiClient('/api/users/social-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -5,6 +5,7 @@ import {
   Search, Trash2, Download, Eye, Lock, Filter, Activity, Stethoscope, FilePlus, ShieldCheck 
 } from 'lucide-react';
 import { useTranslation } from '../contexts/LanguageContext';
+import { apiClient } from '../apiClient';
 
 type VaultRecord = {
   id: string;
@@ -48,7 +49,7 @@ export default function HealthVault({ onBack, userRole = 'PATIENT', patientId = 
       if (search) params.append('search', search);
       if (category && category !== 'All') params.append('category', category);
 
-      const res = await fetch(`${endpoint}?${params.toString()}`, {
+      const res = await apiClient(`${endpoint}?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -79,7 +80,7 @@ export default function HealthVault({ onBack, userRole = 'PATIENT', patientId = 
       const formData = new FormData();
       formData.append('file', file);
       
-      const uploadRes = await fetch('/api/upload/file', {
+      const uploadRes = await apiClient('/api/upload/file', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -94,7 +95,7 @@ export default function HealthVault({ onBack, userRole = 'PATIENT', patientId = 
         setUploadProgress(80);
         // Now register in vault
         const docCat = category === 'All' ? 'Other' : category;
-        const vaultRes = await fetch('/api/vault', {
+        const vaultRes = await apiClient('/api/vault', {
           method: 'POST',
           headers: {
              'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -125,7 +126,7 @@ export default function HealthVault({ onBack, userRole = 'PATIENT', patientId = 
   const deleteRecord = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const res = await fetch(`/api/vault/${id}`, {
+      const res = await apiClient(`/api/vault/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import { apiClient } from '../apiClient';
 
 interface User {
   id: string;
@@ -28,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Fallback: load normal token session if not relying purely on Firebase
     const fetchMe = async () => {
       try {
-        const res = await fetch('/api/users/me');
+        const res = await apiClient('/api/users/me');
         if (res.ok) {
            const data = await res.json();
            setUser(data.user || null);
@@ -55,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
              if (providerData.providerId === 'apple.com') providerName = 'apple';
           }
 
-          const res = await fetch('/api/users/social-login', {
+          const res = await apiClient('/api/users/social-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -93,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     await signOut(auth);
-    await fetch('/api/users/logout', { method: 'POST' });
+    await apiClient('/api/users/logout', { method: 'POST' });
     setUser(null);
   };
 

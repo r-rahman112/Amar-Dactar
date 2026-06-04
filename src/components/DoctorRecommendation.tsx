@@ -3,6 +3,7 @@ import { Search, MapPin, Star, Calendar, Clock, Video, UserCheck, Filter, ArrowL
 import { motion, AnimatePresence } from 'motion/react';
 import AppointmentBooking from './AppointmentBooking';
 import { useTranslation } from '../contexts/LanguageContext';
+import { apiClient } from '../apiClient';
 
 const SPECIALTIES = ['All', 'Cardiologist', 'Dermatologist', 'Pediatrician', 'Neurologist', 'General Practitioner', 'Orthopedic'];
 const LOCATIONS = ['All', 'Downtown Clinic, NY', 'Westside Medical, NY', 'Uptown Hospital, NY', 'Central Care Clinic, NY', 'Midtown Health, NY'];
@@ -24,7 +25,7 @@ export default function DoctorRecommendation({ onBack }: { onBack: () => void })
 
   const fetchDoctors = async () => {
     try {
-      const res = await fetch('/api/doctors/search', {
+      const res = await apiClient('/api/doctors/search', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

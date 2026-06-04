@@ -3,6 +3,7 @@ import { Bell, CheckCircle2, AlertCircle, X, Trash2, CheckCheck } from 'lucide-r
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '../contexts/LanguageContext';
+import { apiClient } from '../apiClient';
 
 export default function NotificationDropdown() {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -21,7 +22,7 @@ export default function NotificationDropdown() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('/api/notifications', {
+      const res = await apiClient('/api/notifications', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) setNotifications(await res.json());
@@ -30,7 +31,7 @@ export default function NotificationDropdown() {
 
   const markAllRead = async () => {
     try {
-      await fetch('/api/notifications/read-all', {
+      await apiClient('/api/notifications/read-all', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -40,7 +41,7 @@ export default function NotificationDropdown() {
 
   const markRead = async (id: string) => {
     try {
-      await fetch(`/api/notifications/${id}/read`, {
+      await apiClient(`/api/notifications/${id}/read`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -51,7 +52,7 @@ export default function NotificationDropdown() {
   const deleteNotification = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await fetch(`/api/notifications/${id}`, {
+      await apiClient(`/api/notifications/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });

@@ -4,6 +4,7 @@ import { Search, Plus, MoreVertical, Edit, ShieldBan, ShieldAlert, Key, UserChec
 import { useAuth } from '../contexts/AuthContext';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { apiClient } from '../apiClient';
 
 interface UserData {
   id: string;
@@ -37,7 +38,7 @@ export default function UserManagement({ viewMode = 'users' }: { viewMode?: stri
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users');
+      const res = await apiClient('/api/users');
       if (res.ok) {
         const data = await res.json();
         setUsers(data);
@@ -66,7 +67,7 @@ export default function UserManagement({ viewMode = 'users' }: { viewMode?: stri
       url += '/reset-password'; method = 'PATCH'; body = { newPassword: value || '12345678A!' };
     }
 
-    await fetch(url, {
+    await apiClient(url, {
       method,
       headers: {
         'Content-Type': 'application/json'
@@ -452,7 +453,7 @@ export default function UserManagement({ viewMode = 'users' }: { viewMode?: stri
                  e.preventDefault();
                  setLoading(true);
                  try {
-                    await fetch('/api/users', {
+                    await apiClient('/api/users', {
                        method: 'POST',
                        headers: { 'Content-Type': 'application/json' },
                        body: JSON.stringify(formData)

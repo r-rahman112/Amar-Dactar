@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ShieldCheck, CheckCircle2, XCircle, FileText, UserCheck, ShieldAlert } from 'lucide-react';
+import { apiClient } from '../apiClient';
 
 export default function AdminPanel() {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ export default function AdminPanel() {
 
   const fetchVerifications = async () => {
     try {
-      const res = await fetch('/api/admin/doctor-verifications', {
+      const res = await apiClient('/api/admin/doctor-verifications', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if(res.ok) setVerifications(await res.json());
@@ -35,7 +36,7 @@ export default function AdminPanel() {
     }
 
     try {
-      const res = await fetch(`/api/admin/doctor-verifications/${id}`, {
+      const res = await apiClient(`/api/admin/doctor-verifications/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

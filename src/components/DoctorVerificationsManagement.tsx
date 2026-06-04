@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ShieldCheck, CheckCircle2, XCircle, Search, FileText } from 'lucide-react';
+import { apiClient } from '../apiClient';
 
 export default function DoctorVerificationsManagement() {  const { t } = useTranslation();
 
@@ -14,7 +15,7 @@ export default function DoctorVerificationsManagement() {  const { t } = useTran
 
   const fetchVerifications = async () => {
     try {
-      const res = await fetch('/api/admin/doctor-verifications', {
+      const res = await apiClient('/api/admin/doctor-verifications', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) {
@@ -29,7 +30,7 @@ export default function DoctorVerificationsManagement() {  const { t } = useTran
 
   const overrideStatus = async (doctorId: string, status: string, reason?: string) => {
     try {
-      const res = await fetch(`/api/admin/doctor-verifications/${doctorId}`, {
+      const res = await apiClient(`/api/admin/doctor-verifications/${doctorId}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',

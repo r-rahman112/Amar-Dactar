@@ -3,6 +3,7 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { X, CheckCircle2, ShieldCheck, Clock, CreditCard } from 'lucide-react';
 import { DoctorInfo } from '../types';
+import { apiClient } from '../apiClient';
 
 interface PaymentModalProps {
   doctor: DoctorInfo;
@@ -36,7 +37,7 @@ export default function PaymentModal({ doctor, onClose, onPaymentComplete }: Pay
     setError('');
     try {
       // Intiate payment
-      const initRes = await fetch('/api/payment/initiate', {
+      const initRes = await apiClient('/api/payment/initiate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -56,7 +57,7 @@ export default function PaymentModal({ doctor, onClose, onPaymentComplete }: Pay
       await new Promise(r => setTimeout(r, 2000));
 
       // Complete payment
-      const compRes = await fetch('/api/payment/complete', {
+      const compRes = await apiClient('/api/payment/complete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

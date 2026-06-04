@@ -3,6 +3,7 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { X, Calendar as CalendarIcon, Clock, ArrowRight, ShieldCheck } from 'lucide-react';
 import { DoctorInfo } from '../types';
+import { apiClient } from '../apiClient';
 
 interface ConsultationSchedulerProps {
   doctor: DoctorInfo;
@@ -29,7 +30,7 @@ export default function ConsultationScheduler({ doctor, onClose, onScheduleSelec
 
   const fetchSchedule = async () => {
     try {
-      const res = await fetch(`/api/appointments/doctor-schedule/${doctor.id}`, {
+      const res = await apiClient(`/api/appointments/doctor-schedule/${doctor.id}`, {
          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) setSchedule(await res.json());
@@ -42,7 +43,7 @@ export default function ConsultationScheduler({ doctor, onClose, onScheduleSelec
     if(!selectedDate) return;
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
-      const res = await fetch(`/api/appointments/doctor/${doctor.id}/slots?date=${dateStr}`, {
+      const res = await apiClient(`/api/appointments/doctor/${doctor.id}/slots?date=${dateStr}`, {
          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) setBookedSlots(await res.json());
