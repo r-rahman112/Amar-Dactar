@@ -1,3 +1,4 @@
+import { useTranslation } from '../contexts/LanguageContext';
 import { useState } from 'react';
 import { X, Activity, MessageSquare, HeartPulse, Check, UserCheck, AlertCircle, Copy, CheckCircle2 } from 'lucide-react';
 
@@ -22,6 +23,7 @@ const SYMPTOM_PRESETS = [
 ];
 
 export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
+  const { t } = useTranslation();
   const [symptomText, setSymptomText] = useState('');
   const [status, setStatus] = useState<'input' | 'analyzing' | 'result'>('input');
   const [assessmentResult, setAssessmentResult] = useState<any>(null);
@@ -100,7 +102,7 @@ export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
         <div className="flex justify-between items-center bg-blue-50/50 px-6 py-4.5 border-b border-blue-50">
           <div className="flex items-center space-x-2.5 text-blue-800">
             <HeartPulse className="h-5.5 w-5.5 text-blue-600 animate-pulse" />
-            <h3 className="font-display font-bold text-lg text-slate-900">AI Symptom Evaluation Simulator</h3>
+            <h3 className="font-display font-bold text-lg text-slate-900">{t('AI Symptom Evaluation Simulator')}</h3>
           </div>
           <button
             onClick={onClose}
@@ -116,13 +118,13 @@ export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
           {status === 'input' && (
             <div className="space-y-5">
               <div className="space-y-1">
-                <label className="text-sm font-bold text-slate-800">Describe what you are currently feeling:</label>
-                <p className="text-xs text-slate-500">Explain your symptoms in simple language. Include details like duration and severity.</p>
+                <label className="text-sm font-bold text-slate-800">{t('Describe what you are currently feeling:')}</label>
+                <p className="text-xs text-slate-500">{t('Explain your symptoms in simple language. Include details like duration and severity.')}</p>
               </div>
 
               {/* Presets Row */}
               <div className="space-y-2">
-                <span className="text-xs text-slate-400 block font-semibold uppercase tracking-wider">Or click a sample scenario to test instantly:</span>
+                <span className="text-xs text-slate-400 block font-semibold uppercase tracking-wider">{t('Or click a sample scenario to test instantly:')}</span>
                 <div className="flex flex-wrap gap-2.5">
                   {SYMPTOM_PRESETS.map((preset) => (
                     <button
@@ -156,7 +158,7 @@ export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
                   onClick={onClose}
                   className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors cursor-pointer"
                 >
-                  Close
+                  {t('Close')}
                 </button>
                 <button
                   type="button"
@@ -169,7 +171,7 @@ export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
                   }`}
                 >
                   <Activity className="h-4 w-4" />
-                  <span>Analyze Symptoms</span>
+                  <span>{t('Analyze Symptoms')}</span>
                 </button>
               </div>
             </div>
@@ -205,7 +207,7 @@ export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
                     Education Triage Tier: {assessmentResult.educationalRisk} Risk
                   </h4>
                   <p className="text-xs font-normal leading-relaxed opacity-95">
-                    This automated response represents public health references. It is not an actual diagnosis or therapy.
+                    {t('This automated response represents public health references. It is not an actual diagnosis or therapy.')}
                   </p>
                 </div>
               </div>
@@ -214,12 +216,12 @@ export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-1">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Likely Area of Analysis</span>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">{t('Likely Area of Analysis')}</span>
                     <p className="text-sm font-semibold text-slate-900 leading-snug">{assessmentResult.possibleCauses}</p>
                   </div>
 
                   <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-1">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Recommended Specialist Category</span>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">{t('Recommended Specialist Category')}</span>
                     <p className="text-sm font-semibold text-slate-900 leading-snug flex items-center gap-1.5">
                       <UserCheck className="h-4 w-4 text-emerald-600" />
                       {assessmentResult.specialty}
@@ -234,7 +236,7 @@ export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
 
                 {/* Important Doctor Questions list */}
                 <div className="space-y-2.5">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ask Your General Doctor These Questions:</h4>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t('Ask Your General Doctor These Questions:')}</h4>
                   <div className="space-y-2">
                     {assessmentResult.questionsList.map((q: string, idx: number) => (
                       <div key={idx} className="flex gap-2.5 items-start text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100/65">
@@ -249,20 +251,20 @@ export default function SymptomModal({ isOpen, onClose }: SymptomModalProps) {
               {/* Footer Actions */}
               <div className="flex justify-between items-center pt-3 border-t border-slate-100">
                 <p className="text-[11px] text-slate-400 flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Verified Educational Output
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> {t('Verified Educational Output')}
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={handleReset}
                     className="px-4.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
                   >
-                    Test Another Symptom
+                    {t('Test Another Symptom')}
                   </button>
                   <button
                     onClick={onClose}
                     className="px-4.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer animate-fade-in"
                   >
-                    Done
+                    {t('Done')}
                   </button>
                 </div>
               </div>

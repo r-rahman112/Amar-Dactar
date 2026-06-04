@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { ShieldCheck, CheckCircle2, XCircle, Search, FileText } from 'lucide-react';
 
-export default function DoctorVerificationsManagement() {
+export default function DoctorVerificationsManagement() {  const { t } = useTranslation();
+
   const [verifications, setVerifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVerif, setSelectedVerif] = useState<any>(null);
@@ -42,14 +44,14 @@ export default function DoctorVerificationsManagement() {
     } catch(e) {}
   };
 
-  if (loading) return <div className="p-10 text-center text-slate-500">Loading verifications...</div>;
+  if (loading) return <div className="p-10 text-center text-slate-500">{t('Loading verifications...')}</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Doctor Verifications</h2>
-          <p className="text-sm text-slate-500">Approve or reject doctor applications.</p>
+          <h2 className="text-xl font-bold text-slate-900">{t('Doctor Verifications')}</h2>
+          <p className="text-sm text-slate-500">{t('Approve or reject doctor applications.')}</p>
         </div>
       </div>
 
@@ -58,10 +60,10 @@ export default function DoctorVerificationsManagement() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Doctor</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Submitted At</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Actions</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">{t('Doctor')}</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">{t('Status')}</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">{t('Submitted At')}</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">{t('Actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -85,12 +87,12 @@ export default function DoctorVerificationsManagement() {
                     {new Date(v.created_at).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    <button onClick={() => setSelectedVerif(v)} className="text-blue-600 font-bold hover:underline">Review Documents</button>
+                    <button onClick={() => setSelectedVerif(v)} className="text-blue-600 font-bold hover:underline">{t('Review Documents')}</button>
                   </td>
                 </tr>
               ))}
               {verifications.length === 0 && (
-                <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">No verifications found.</td></tr>
+                <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">{t('No verifications found.')}</td></tr>
               )}
             </tbody>
           </table>
@@ -111,31 +113,31 @@ export default function DoctorVerificationsManagement() {
             <div className="p-6 overflow-y-auto space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div className="space-y-2">
-                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">BMDC Certificate</p>
+                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('BMDC Certificate')}</p>
                    <a href={selectedVerif.bmdc_cert_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 p-3 rounded-xl break-all">
                      <FileText className="w-4 h-4 shrink-0" /> {selectedVerif.bmdc_cert_url}
                    </a>
                  </div>
                  <div className="space-y-2">
-                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Medical Degree</p>
+                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('Medical Degree')}</p>
                    <a href={selectedVerif.degree_cert_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 p-3 rounded-xl break-all">
                      <FileText className="w-4 h-4 shrink-0" /> {selectedVerif.degree_cert_url}
                    </a>
                  </div>
                  <div className="space-y-2">
-                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">NID Front</p>
+                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('NID Front')}</p>
                    <a href={selectedVerif.nid_front_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 p-3 rounded-xl break-all">
                      <FileText className="w-4 h-4 shrink-0" /> {selectedVerif.nid_front_url}
                    </a>
                  </div>
                  <div className="space-y-2">
-                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">NID Back</p>
+                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('NID Back')}</p>
                    <a href={selectedVerif.nid_back_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 p-3 rounded-xl break-all">
                      <FileText className="w-4 h-4 shrink-0" /> {selectedVerif.nid_back_url}
                    </a>
                  </div>
                  <div className="space-y-2">
-                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Professional Photo</p>
+                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('Professional Photo')}</p>
                    <a href={selectedVerif.photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 p-3 rounded-xl break-all">
                      <FileText className="w-4 h-4 shrink-0" /> {selectedVerif.photo_url}
                    </a>
@@ -154,14 +156,14 @@ export default function DoctorVerificationsManagement() {
                 className="px-6 py-2.5 bg-red-100 text-red-700 hover:bg-red-200 font-bold rounded-xl transition-colors"
                 disabled={selectedVerif.status === 'Rejected'}
               >
-                Reject Application
+                {t('Reject Application')}
               </button>
               <button 
                 onClick={() => overrideStatus(selectedVerif.doctor_id, 'Verified')}
                 className="px-6 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 font-bold rounded-xl transition-colors"
                 disabled={selectedVerif.status === 'Verified'}
               >
-                Approve as Verified
+                {t('Approve as Verified')}
               </button>
             </div>
           </div>

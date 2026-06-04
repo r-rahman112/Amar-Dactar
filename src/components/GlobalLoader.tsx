@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShieldPlus } from 'lucide-react';
 
 export default function GlobalLoader() {
+  const { t } = useTranslation();
+
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
 

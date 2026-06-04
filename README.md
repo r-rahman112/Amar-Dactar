@@ -128,3 +128,170 @@ npm run start
 - **Types**: Written rigorously in TypeScript.
 
 For contributions or detailed architectural overviews, check the `src/backend` components and the main frontend React structure located inside `src/`.
+
+
+# Production Deployment Guide
+
+This guide is designed for developers deploying the Amar Daktar platform to production for the first time. It includes all infrastructure, credential, and environmental requirements based on the current codebase.
+
+---
+
+## SECTION 1: REQUIRED SERVICES
+
+The Amar Daktar platform integrates the following external services:
+
+* **PostgreSQL** (e.g., Neon, Cloud SQL, Supabase DB): The core relational database used to store users, appointments, session history, and transactions.
+* **Firebase**: Used exclusively for handling OAuth authentication (Google, Facebook, Apple).
+* **Supabase**: Provides Edge Functions (used to send secure support emails without exposing secrets on the backend directly). It can also act as the primary PostgreSQL database.
+* **OpenRouter / Ollama**: The AI brains behind the symptom checker and medical report parsing. OpenRouter is used for production models, while Ollama is supported for local privacy variants.
+* **Resend**: Used inside the Supabase Edge Function to deliver support form submission emails to the admin.
+* **Redis** (Optional but recommended): Used via `ioredis` and `rate-limit-redis` for enforcing API rate limiting to prevent abuse.
+
+---
+
+## SECTION 2: REQUIRED ENVIRONMENT VARIABLES
+
+Ensure your deployment environment (Vercel, Railway, Render, etc.) has all the following variables configured correctly. 
+
+| Variable Name | Required/Optional | Purpose | Example Value |
+| --- | --- | --- | --- |
+| `VITE_SUPABASE_URL` | **Required** | Connects client-side Support forms to Supabase Edge Functions. | `https://xyz.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | **Required** | Public API key for Supabase client calls. | `eyJhbGciOiJIUz...` |
+| `DATABASE_URL` | **Required** | Full connection string to your PostgreSQL instance. | `postgres://user:pass@host/db` |
+| `JWT_SECRET` / `SESSION_SECRET`| **Required** | Cryptographic key to sign auth JWT cookies. | `your_long_random_jwt_secret` |
+| `FILE_UPLOAD_PATH` | **Required** | Directory path mapping where medical reports are uploaded on the node server. | `./uploads` |
+| `NODE_ENV` | **Required** | Defines the environment. | `production` |
+| `REDIS_URL` | Optional | Connection string for Redis Rate Limiting. | `rediss://default:pass@host:port` |
+| `AI_PROVIDER` | Optional | Which AI inference provider to use. Defaults to `openrouter`. | `openrouter` |
+| `OPENROUTER_API_KEY` | **Required** (if OpenRouter) | Authentication for LLM inference. | `sk-or-v1-abcdef...` |
+| `AI_MODEL` / `VITE_AI_MODEL` | Optional | Specifies the precise model router ID. | `google/gemini-pro` |
+| `OLLAMA_BASE_URL` | Optional | Points to Ollama server for local AI. | `http://127.0.0.1:11434` |
+| `OLLAMA_MODEL` | Optional | Target Ollama localized model. | `llama3` |
+
+---
+
+## SECTION 3: REQUIRED API KEYS
+
+You will need to obtain the following keys to authorize interactions:
+
+* **OpenRouter API Key**: Obtain from [OpenRouter.ai](https://openrouter.ai). This allows the application to query premium generative models.
+* **Firebase Credentials**: Obtain from [Firebase Console](https://console.firebase.google.com). Configure a new Web App to get your configuration object (apiKey, authDomain, projectId). Paste these configuration properties directly into `src/lib/firebase.ts`.
+* **Supabase Keys**: Obtain from your project dashboard on [Supabase.com](https://supabase.com). You will need the `Project URL` and `anon` key.
+* **Resend API Key**: Obtain from [Resend.com](https://resend.com). This key is strictly injected into Supabase secrets (not your main app `.env`) to process emails securely.
+
+---
+
+## SECTION 4: REQUIRED SECRETS
+
+### Supabase Edge Function Secrets
+Since the `send-support-email` function lives in Supabase Edge Functions, you must set these secrets directly inside Supabase:
+
+* `RESEND_API_KEY`: Used by the Edge Function to send emails securely.
+* `SUPPORT_EMAIL`: The destination admin email address that will receive customer support messages.
+
+*To set Supabase secrets, run via Supabase CLI:*
+`supabase secrets set RESEND_API_KEY=your_key SUPPORT_EMAIL=your_email`
+
+---
+
+## SECTION 5: REQUIRED DATABASES
+
+* **PostgreSQL**: Used for all major tables (users, patients, doctors, sessions, payments).
+* **Database Setup & Migrations**: Amar Daktar initializes dynamic tables on start. In a production Node.js environment, the Express server uses `pg` to execute `CREATE TABLE IF NOT EXISTS` natively on bootstrap. Ensure your provided DB User in `DATABASE_URL` has standard DDL execution privileges for the first run.
+
+---
+
+## SECTION 6: REQUIRED PACKAGES
+
+### Production Dependencies
+These packages must be compiled and deployed:
+* **Express & Middleware**: `express`, `cors`, `cookie-parser`, `helmet`, `express-rate-limit`
+* **Realtime**: `socket.io`, `socket.io-client`
+* **Database & Auth**: `pg`, `bcryptjs`, `jsonwebtoken`, `firebase`
+* **AI & Utils**: `@google/genai`, `zod`, `multer`, `ioredis`
+* **Frontend**: `react`, `react-dom`, `framer-motion`, `lucide-react`, `tailwindcss`, `recharts`
+
+### Development Dependencies
+Used locally for compiling and type checks:
+* **TypeScript & Bundlers**: `typescript`, `vite`, `esbuild`, `tsx`
+* **Tailwind CSS**: `tailwindcss`, `autoprefixer`
+* **Types**: `@types/node`, `@types/express`, `@types/pg`, etc.
+
+---
+
+## SECTION 7: LOCAL DEVELOPMENT
+
+If you want to review the application locally before production deployment:
+
+1. **`npm install`**: Installs all required Node modules.
+2. **`npm run dev`**: Uses `tsx` and `vite` proxy middleware to serve both the Express Backend and React Frontend concurrently at `http://localhost:3000`. You can develop and test immediately.
+3. **`npm run build`**: Compiles the React frontend using Vite (into `dist/`) and bundles the Express server using esbuild into a clean CommonJS file (`dist/server.cjs`).
+4. **`npm run start`**: Executes the compiled production backend `node dist/server.cjs`.
+5. **`npm run lint`**: Runs TypeScript validation to spot errors.
+
+---
+
+## SECTION 8: VERCEL DEPLOYMENT
+
+Amar Daktar is a Full-Stack application. Because it relies heavily on WebSockets (`socket.io`), standard serverless platforms like Vercel will struggle with long-polling/sockets dropping connections randomly. A containerized platform (like Google Cloud Run, Railway, or Render) is recommended, but Vercel can be used for standard API endpoints and Frontend.
+
+If deploying to **Railway or Render** (Recommended):
+1. Push your project to a GitHub repository.
+2. Create a new Web Service and link the repo.
+3. Set the build command to: `npm install && npm run build`
+4. Set the start command to: `npm run start`
+5. Configure your Environment Variables matching Section 2.
+6. Deploy and verify. 
+
+If deploying Frontend only to **Vercel** (requires splitting the backend):
+1. Push project to GitHub.
+2. Import the repository in Vercel.
+3. Add the `VITE_*` environment variables.
+4. Deploy the project. Note that `server.ts` handles API routes, so you must either use a custom `vercel.json` rewrites or host the backend separately elsewhere.
+
+---
+
+## SECTION 9: POST DEPLOYMENT CHECKLIST
+
+Ensure the application is fully functional:
+
+- [ ] Homepage loads successfully
+- [ ] English ↔ Bangla language switch works exactly across all UI elements
+- [ ] Patient, Admin, and Doctor Login/Signup works
+- [ ] Dashboard metrics and charts load
+- [ ] AI Chat Assistant successfully processes symptom chats
+- [ ] Paid Doctor Live Chat works (WebSockets establish correctly)
+- [ ] Medical Upload Report safely stores locally/blob and parses
+- [ ] Support Form successfully pings Supabase Edge Functions and sends the email
+- [ ] Session Expiry Timers calculate correctly and lock interfaces securely
+- [ ] Responsive UI functions elegantly on phone dimensions
+
+---
+
+## SECTION 10: FIREBASE CONFIGURATION
+
+1. **Authorized Domains**: Go to Firebase Authentication Settings. Add your production domain (`your-app.com`) to the **Authorized Domains** list to allow OAuth flows.
+2. **Providers**: Enable Google, Facebook, and Apple authentication gateways.
+3. **Client Configuration**: Hardcode the public Firebase configurations directly inside `src/lib/firebase.ts`. Because these are standard connection identifiers, they are safe to expose to the frontend.
+
+---
+
+## SECTION 11: SUPABASE CONFIGURATION
+
+1. **Create Edge Functions**: The `send-support-email` function needs to be explicitly created in your Supabase project instance.
+   - Install Supabase CLI.
+   - Create the function to capture POST bodies and invoke the Resend API.
+   - Deploy the function via `supabase functions deploy send-support-email`
+2. **Secrets**: Inject `RESEND_API_KEY` into Supabase safely.
+3. **CORS Configuration**: Ensure your Edge function returns the correct CORS headers so your production domain can POST to it successfully.
+
+---
+
+## SECTION 12: TROUBLESHOOTING
+
+* **PostgreSQL Connection Errors**: Double-check `DATABASE_URL`. If using Neon or Supabase DB, append `?sslmode=require` to the string if your deployment engine requires SSL encryption.
+* **Missing Environment Variables**: Verify that Vercel/Railway injected strings properly. UI components will show explicit toast errors if `VITE_SUPABASE_URL` is omitted.
+* **OpenRouter / AI Failing**: If "Failed to process chat" appears, verify `OPENROUTER_API_KEY` is present and you have active credits internally on the provider.
+* **WebSocket Disconnections**: If the Paid Doctor Chat drops randomly, ensure your hosting provider supports sticky sessions or raw WebSocket upgrades (some load balancers strip socket upgrade headers).
+* **Firebase Auth Error (Domain unauthorized)**: You forgot to add your production URL to Firebase's authorized domains list.
+* **Send Email Function Failures**: Ensure `RESEND_API_KEY` is validated and the sender email identity on Resend is verified with DNS.

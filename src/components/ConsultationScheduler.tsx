@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { X, Calendar as CalendarIcon, Clock, ArrowRight, ShieldCheck } from 'lucide-react';
 import { DoctorInfo } from '../types';
@@ -9,7 +10,8 @@ interface ConsultationSchedulerProps {
   onScheduleSelected: (date: string, time: string, endTime: string) => void;
 }
 
-export default function ConsultationScheduler({ doctor, onClose, onScheduleSelected }: ConsultationSchedulerProps) {
+export default function ConsultationScheduler({ doctor, onClose, onScheduleSelected }: ConsultationSchedulerProps) {  const { t } = useTranslation();
+
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('');
   
@@ -97,7 +99,7 @@ export default function ConsultationScheduler({ doctor, onClose, onScheduleSelec
       >
         <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <div>
-            <h3 className="font-display font-bold text-lg text-slate-900 leading-none">Schedule Consultation</h3>
+            <h3 className="font-display font-bold text-lg text-slate-900 leading-none">{t('Schedule Consultation')}</h3>
             <p className="text-xs text-slate-500 mt-1">Select an available time slot for {doctor.fullName}</p>
           </div>
           <button onClick={onClose} className="p-1.5 bg-slate-200 hover:bg-slate-300 rounded-full text-slate-600 transition-colors">
@@ -120,7 +122,7 @@ export default function ConsultationScheduler({ doctor, onClose, onScheduleSelec
            </div>
 
            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-3">
-             <CalendarIcon className="w-4 h-4 text-slate-400" /> Select Date
+             <CalendarIcon className="w-4 h-4 text-slate-400" /> {t('Select Date')}
            </h4>
            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
              {upcomingDays.map((date, i) => {
@@ -153,7 +155,7 @@ export default function ConsultationScheduler({ doctor, onClose, onScheduleSelec
            {selectedDate && (
              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-2">
                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-3">
-                 <Clock className="w-4 h-4 text-slate-400" /> Select Time Slot
+                 <Clock className="w-4 h-4 text-slate-400" /> {t('Select Time Slot')}
                </h4>
                <div className="grid grid-cols-3 gap-3">
                  {timeSlots.map(time => {
@@ -179,7 +181,7 @@ export default function ConsultationScheduler({ doctor, onClose, onScheduleSelec
         <div className="p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
            <div className="flex-1">
              <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                <ShieldCheck className="w-3.5 h-3.5" /> Secured Booking
+                <ShieldCheck className="w-3.5 h-3.5" /> {t('Secured Booking')}
              </div>
            </div>
            
@@ -193,7 +195,7 @@ export default function ConsultationScheduler({ doctor, onClose, onScheduleSelec
              disabled={!selectedDate || !selectedTime}
              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold text-sm rounded-xl transition-colors flex items-center gap-2"
            >
-             Continue <ArrowRight className="w-4 h-4" />
+             {t('Continue')} <ArrowRight className="w-4 h-4" />
            </button>
         </div>
       </motion.div>

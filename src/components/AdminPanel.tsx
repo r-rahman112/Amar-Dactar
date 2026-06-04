@@ -1,9 +1,12 @@
 import toast from "react-hot-toast";
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ShieldCheck, CheckCircle2, XCircle, FileText, UserCheck, ShieldAlert } from 'lucide-react';
 
 export default function AdminPanel() {
+  const { t } = useTranslation();
+
   const { user } = useAuth();
   const [verifications, setVerifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

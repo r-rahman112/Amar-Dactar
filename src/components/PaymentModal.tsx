@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { X, CheckCircle2, ShieldCheck, Clock, CreditCard } from 'lucide-react';
 import { DoctorInfo } from '../types';
@@ -10,6 +11,7 @@ interface PaymentModalProps {
 }
 
 export default function PaymentModal({ doctor, onClose, onPaymentComplete }: PaymentModalProps) {
+  const { t } = useTranslation();
   const [selectedPackage, setSelectedPackage] = useState<number>(10);
   const [selectedMethod, setSelectedMethod] = useState<string>('bKash');
   const [processing, setProcessing] = useState(false);

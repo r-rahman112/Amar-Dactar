@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Clock } from 'lucide-react';
@@ -7,6 +8,8 @@ const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 const WARNING_BEFORE = 5 * 60 * 1000; // Show warning 5 minutes before expiration
 
 export default function SessionTimeoutManager() {
+  const { t } = useTranslation();
+
   const { isAuthenticated, logout } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(WARNING_BEFORE / 1000);
@@ -101,14 +104,14 @@ export default function SessionTimeoutManager() {
                   <AlertCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-display font-bold text-slate-900">Session Warning</h3>
-                  <p className="text-sm text-slate-500">Your session is about to expire</p>
+                  <h3 className="text-xl font-display font-bold text-slate-900">{t('Session Warning')}</h3>
+                  <p className="text-sm text-slate-500">{t('Your session is about to expire')}</p>
                 </div>
               </div>
               
               <div className="bg-amber-50 rounded-xl p-4 mb-6 border border-amber-100/50">
                 <p className="text-amber-800 text-sm font-medium leading-relaxed">
-                  For your security, you will be automatically logged out due to inactivity in:
+                  {t('For your security, you will be automatically logged out due to inactivity in:')}
                 </p>
                 <div className="flex items-center gap-2 mt-3 text-amber-700 font-mono font-bold text-lg">
                   <Clock className="w-5 h-5 shadow-sm" />
@@ -122,15 +125,11 @@ export default function SessionTimeoutManager() {
                 <button
                   onClick={handleLogout}
                   className="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors duration-200"
-                >
-                  Log Out
-                </button>
+                >{t('Log Out')}</button>
                 <button
                   onClick={extendSession}
                   className="px-5 py-2.5 text-sm font-bold bg-blue-600 text-white rounded-xl shadow-sm hover:hover:bg-blue-700 hover:shadow-md transition-all duration-200"
-                >
-                  Keep Me Logged In
-                </button>
+                >{t('Keep Me Logged In')}</button>
               </div>
             </div>
           </motion.div>

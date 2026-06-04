@@ -1,4 +1,5 @@
 import toast from "react-hot-toast";
+import { useTranslation } from '../contexts/LanguageContext';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -17,7 +18,8 @@ interface DoctorDashboardProps {
   onOpenConsultation: (sessionId: string, patientId?: string) => void;
 }
 
-export default function DoctorDashboard({ onLogout, onOpenConsultation }: DoctorDashboardProps) {
+export default function DoctorDashboard({ onLogout, onOpenConsultation }: DoctorDashboardProps) {  const { t } = useTranslation();
+
   const [stats, setStats] = useState<any>(null);
   const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,7 +140,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
         <BrandLogo />
         <div className="mt-6 flex items-center gap-2 text-slate-500">
           <div className="w-4 h-4 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin" />
-          Loading secure doctor portal...
+          {t('Loading secure doctor portal...')}
         </div>
       </div>
     );
@@ -150,19 +152,19 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
       <aside className="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto">
         <div className="flex-1 py-6 px-4 space-y-2">
            <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 font-semibold rounded-xl text-sm transition-colors ${activeTab === 'dashboard' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-             <Activity className="h-5 w-5" /> Dashboard
+             <Activity className="h-5 w-5" /> {t('Dashboard')}
            </button>
            <button onClick={() => setActiveTab('appointments')} className={`w-full flex items-center gap-3 px-4 py-3 font-semibold rounded-xl text-sm transition-colors ${activeTab === 'appointments' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-             <Users className="h-5 w-5" /> Appointments
+             <Users className="h-5 w-5" /> {t('Appointments')}
            </button>
            <button onClick={() => setActiveTab('schedule')} className={`w-full flex items-center gap-3 px-4 py-3 font-semibold rounded-xl text-sm transition-colors ${activeTab === 'schedule' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-             <Calendar className="h-5 w-5" /> Schedule
+             <Calendar className="h-5 w-5" /> {t('Schedule')}
            </button>
            <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center gap-3 px-4 py-3 font-semibold rounded-xl text-sm transition-colors ${activeTab === 'settings' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-             <Settings className="h-5 w-5" /> Settings
+             <Settings className="h-5 w-5" /> {t('Settings')}
            </button>
            <button onClick={() => setActiveTab('verification')} className={`w-full flex items-center gap-3 px-4 py-3 font-semibold rounded-xl text-sm transition-colors ${activeTab === 'verification' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-             <CheckCircle2 className="h-5 w-5" /> Verification
+             <CheckCircle2 className="h-5 w-5" /> {t('Verification')}
            </button>
         </div>
         <div className="p-4 border-t border-slate-100">
@@ -170,7 +172,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
              onClick={onLogout}
              className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 font-bold rounded-xl text-sm transition-colors"
            >
-             <LogOut className="h-5 w-5" /> Logout
+             <LogOut className="h-5 w-5" /> {t('Logout')}
            </button>
         </div>
       </aside>
@@ -180,11 +182,11 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
         <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 font-display">Welcome, {user?.fullName || user?.email?.split('@')[0]}</h1>
-            <p className="text-sm text-slate-500 mt-1">Manage your appointments and virtual clinic securely.</p>
+            <p className="text-sm text-slate-500 mt-1">{t('Manage your appointments and virtual clinic securely.')}</p>
           </div>
           <div className="flex items-center gap-3">
              <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold border border-emerald-100">
-               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online
+               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {t('Online')}
              </span>
              <div className="h-10 w-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-600 shrink-0 border border-slate-300">
                 <UserIcon className="h-5 w-5" />
@@ -210,7 +212,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                 <h3 className="text-3xl font-bold text-slate-900">
                   <AnimatedCounter value={stats?.activeConsultations || 0} />
                 </h3>
-                <p className="text-sm font-semibold text-slate-500 mt-1">Active Consultations</p>
+                <p className="text-sm font-semibold text-slate-500 mt-1">{t('Active Consultations')}</p>
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm premium-card-hover">
@@ -220,14 +222,14 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                 <h3 className="text-3xl font-bold text-slate-900">
                   <AnimatedCounter value={stats?.todayAppointments || 0} />
                 </h3>
-                <p className="text-sm font-semibold text-slate-500 mt-1">Today's Appointments</p>
+                <p className="text-sm font-semibold text-slate-500 mt-1">{t('Today\'s Appointments')}</p>
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm col-span-1 sm:col-span-2 lg:col-span-2 premium-card-hover">
                 <div className="flex justify-between items-start mb-4">
                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl"><DollarSign className="h-6 w-6" /></div>
                    <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
-                     Available to withdraw: <AnimatedCounter value={stats?.earnings?.withdrawable || 0} prefix="৳" />
+                     {t('Available to withdraw:')} <AnimatedCounter value={stats?.earnings?.withdrawable || 0} prefix="৳" />
                    </span>
                 </div>
                 <div className="flex justify-between items-end">
@@ -235,11 +237,11 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                      <h3 className="text-3xl font-bold text-slate-900">
                        <AnimatedCounter value={stats?.earnings?.monthly || 0} prefix="৳" />
                      </h3>
-                     <p className="text-sm font-semibold text-slate-500 mt-1">Monthly Earnings</p>
+                     <p className="text-sm font-semibold text-slate-500 mt-1">{t('Monthly Earnings')}</p>
                   </div>
                   <div className="text-right">
-                     <p className="text-sm text-slate-600 font-medium">Daily: <span className="text-slate-900 font-bold"><AnimatedCounter value={stats?.earnings?.daily || 0} prefix="৳" /></span></p>
-                     <p className="text-sm text-slate-600 font-medium">Weekly: <span className="text-slate-900 font-bold"><AnimatedCounter value={stats?.earnings?.weekly || 0} prefix="৳" /></span></p>
+                     <p className="text-sm text-slate-600 font-medium">{t('Daily:')} <span className="text-slate-900 font-bold"><AnimatedCounter value={stats?.earnings?.daily || 0} prefix="৳" /></span></p>
+                     <p className="text-sm text-slate-600 font-medium">{t('Weekly:')} <span className="text-slate-900 font-bold"><AnimatedCounter value={stats?.earnings?.weekly || 0} prefix="৳" /></span></p>
                   </div>
                 </div>
               </motion.div>
@@ -254,12 +256,12 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                  <table className="w-full min-w-[600px] text-left border-collapse">
                    <thead>
                      <tr>
-                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Patient</th>
+                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">{t('Patient')}</th>
                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Date & Time</th>
-                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Duration</th>
-                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Revenue</th>
-                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Status</th>
-                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Actions</th>
+                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">{t('Duration')}</th>
+                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">{t('Revenue')}</th>
+                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">{t('Status')}</th>
+                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">{t('Actions')}</th>
                      </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-100">
@@ -279,9 +281,9 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                             ৳{pt.amount}
                           </td>
                           <td className="px-6 py-4">
-                            {pt.status === 'active' && <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 font-bold rounded-full border border-blue-200">Active</span>}
-                            {pt.status === 'completed' && <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded-full border border-emerald-200">Completed</span>}
-                            {pt.status === 'pending' && <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 font-bold rounded-full border border-slate-200">Pending</span>}
+                            {pt.status === 'active' && <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 font-bold rounded-full border border-blue-200">{t('Active')}</span>}
+                            {pt.status === 'completed' && <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded-full border border-emerald-200">{t('Completed')}</span>}
+                            {pt.status === 'pending' && <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 font-bold rounded-full border border-slate-200">{t('Pending')}</span>}
                           </td>
                           <td className="px-6 py-4">
                             {pt.status === 'active' && (
@@ -289,14 +291,14 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                                 onClick={() => onOpenConsultation(pt.session_id, pt.patient_id)}
                                 className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition-colors"
                               >
-                                Enter Chat
+                                {t('Enter Chat')}
                               </button>
                             )}
                             {pt.status === 'completed' && (
                               <button 
                                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors"
                               >
-                                View Summary
+                                {t('View Summary')}
                               </button>
                             )}
                           </td>
@@ -304,7 +306,7 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                      )) : (
                        <tr>
                          <td colSpan={6} className="px-6 py-10 text-center text-slate-500 font-medium">
-                           No consultation records found.
+                           {t('No consultation records found.')}
                          </td>
                        </tr>
                      )}
@@ -348,20 +350,20 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
             transition={{ duration: 0.2 }}
           >
           <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-6 mb-10 max-w-4xl mx-auto">
-            <h2 className="text-xl font-bold text-slate-900 mb-6 font-display border-b border-slate-100 pb-4">Doctor Settings</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-6 font-display border-b border-slate-100 pb-4">{t('Doctor Settings')}</h2>
             
             <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); toast('Settings saved (Mock)!'); }}>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div>
-                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Full Name</label>
+                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">{t('Full Name')}</label>
                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" defaultValue="Dr. Demo" />
                  </div>
                  <div>
-                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Specialty</label>
+                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">{t('Specialty')}</label>
                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" defaultValue="Cardiologist" />
                  </div>
                  <div>
-                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">BMDC Registration No</label>
+                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">{t('BMDC Registration No')}</label>
                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" defaultValue="A-54321" />
                  </div>
                  <div>
@@ -369,14 +371,14 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                    <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" defaultValue="1200" />
                  </div>
                  <div className="md:col-span-2">
-                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Available Hours</label>
+                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">{t('Available Hours')}</label>
                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" defaultValue="5:00 PM - 9:00 PM (Sat-Thu)" />
                  </div>
                </div>
 
                <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
                  <button type="submit" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-colors">
-                   Save Changes
+                   {t('Save Changes')}
                  </button>
                  <label className="flex items-center gap-2 cursor-pointer">
                    <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" defaultChecked />
@@ -410,9 +412,9 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
                <div>
                   <p className="font-bold">Status: {verification?.status || 'Pending'}</p>
                   {verification?.details?.rejection_reason && (
-                    <p className="mt-1 opacity-90"><span className="font-bold">Reason: </span>{verification.details.rejection_reason}</p>
+                    <p className="mt-1 opacity-90"><span className="font-bold">{t('Reason:')} </span>{verification.details.rejection_reason}</p>
                   )}
-                  {verification?.status === 'Pending' && <p className="mt-1 opacity-90">Please submit your credentials to activate your account and receive patient consultations.</p>}
+                  {verification?.status === 'Pending' && <p className="mt-1 opacity-90">{t('Please submit your credentials to activate your account and receive patient consultations.')}</p>}
                </div>
             </div>
 
@@ -420,36 +422,36 @@ export default function DoctorDashboard({ onLogout, onOpenConsultation }: Doctor
               <form className="space-y-6" onSubmit={submitVerification}>
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">BMDC Registration Certificate</label>
-                    {verification?.details?.bmdc_cert_url && <a href={verification.details.bmdc_cert_url} target="_blank" className="text-blue-600 text-xs mb-2 block">View Current Document</a>}
+                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">{t('BMDC Registration Certificate')}</label>
+                    {verification?.details?.bmdc_cert_url && <a href={verification.details.bmdc_cert_url} target="_blank" className="text-blue-600 text-xs mb-2 block">{t('View Current Document')}</a>}
                     <input type="file" name="bmdc" accept="image/*,.pdf" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Medical Degree Certificate</label>
-                    {verification?.details?.degree_cert_url && <a href={verification.details.degree_cert_url} target="_blank" className="text-blue-600 text-xs mb-2 block">View Current Document</a>}
+                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">{t('Medical Degree Certificate')}</label>
+                    {verification?.details?.degree_cert_url && <a href={verification.details.degree_cert_url} target="_blank" className="text-blue-600 text-xs mb-2 block">{t('View Current Document')}</a>}
                     <input type="file" name="degree" accept="image/*,.pdf" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">NID Front</label>
-                      {verification?.details?.nid_front_url && <a href={verification.details.nid_front_url} target="_blank" className="text-blue-600 text-xs mb-2 block">View Current Document</a>}
+                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">{t('NID Front')}</label>
+                      {verification?.details?.nid_front_url && <a href={verification.details.nid_front_url} target="_blank" className="text-blue-600 text-xs mb-2 block">{t('View Current Document')}</a>}
                       <input type="file" name="nid_front" accept="image/*,.pdf" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">NID Back</label>
-                      {verification?.details?.nid_back_url && <a href={verification.details.nid_back_url} target="_blank" className="text-blue-600 text-xs mb-2 block">View Current Document</a>}
+                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">{t('NID Back')}</label>
+                      {verification?.details?.nid_back_url && <a href={verification.details.nid_back_url} target="_blank" className="text-blue-600 text-xs mb-2 block">{t('View Current Document')}</a>}
                       <input type="file" name="nid_back" accept="image/*,.pdf" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" />
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Professional Photo</label>
-                    {verification?.details?.photo_url && <a href={verification.details.photo_url} target="_blank" className="text-blue-600 text-xs mb-2 block">View Current Document</a>}
+                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">{t('Professional Photo')}</label>
+                    {verification?.details?.photo_url && <a href={verification.details.photo_url} target="_blank" className="text-blue-600 text-xs mb-2 block">{t('View Current Document')}</a>}
                     <input type="file" name="photo" accept="image/*" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-500/20" />
                   </div>
                 </div>
                 <div className="pt-6 border-t border-slate-100">
                   <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl py-3 transition-colors">
-                    Submit Documents for Review
+                    {t('Submit Documents for Review')}
                   </button>
                 </div>
               </form>
