@@ -1,4 +1,4 @@
-# আমার ডাক্তার - Amar Daktar
+# আমার ডাক্তার - Amar Dactar
 
 **Amar Daktar** is a comprehensive, full-stack medical consultation and health management platform designed to connect patients with certified doctors effortlessly. It provides a secure, intuitive, and highly functional interface built primarily for the citizens to ensure seamless healthcare delivery.
 
