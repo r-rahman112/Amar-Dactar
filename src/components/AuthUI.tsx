@@ -6,7 +6,7 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import BrandLogo from './BrandLogo';
 import PatientRegistration from './PatientRegistration';
-import { auth, googleProvider, facebookProvider, appleProvider } from '../lib/firebase';
+import { auth, googleProvider, facebookProvider, appleProvider, missingFirebaseEnvVars } from '../lib/firebase';
 import {
   signInWithPopup,
   signInWithRedirect
@@ -129,6 +129,9 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess, initialView =
       let user = dataContext?.user;
       
       if (!user) {
+         if (!auth) {
+           throw new Error(`Firebase sign-in is unavailable. Missing: ${missingFirebaseEnvVars.join(', ')}`);
+         }
          const authProvider = getProviderInstance(providerName);
          try {
            const result = await signInWithPopup(auth, authProvider);
@@ -149,6 +152,7 @@ export default function AuthUI({ onSuccess, onBack, onAdminAccess, initialView =
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          idToken: await user.getIdToken(),
           uid: user.uid,
           email: user.email || `${user.uid}@${providerName}.unknown`,
           displayName: user.displayName,

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { query } from "../config/db";
 import { ENV } from "../config/env";
-import { adminAuth } from "../config/firebase-admin";
+import { getAdminAuth } from "../config/firebase-admin";
 
 export interface AuthRequest extends Request {
   user?: {
@@ -28,14 +28,14 @@ const resolveUserFromFirebase = async (uid: string, email?: string) => {
       [email],
     );
 
-    if (emailMatches.rowCount > 1) {
+    if ((emailMatches.rowCount ?? 0) > 1) {
       console.warn(
         `[AUTH] Migration warning: Multiple users found with email ${email}. Aborting firebase_uid mapping.`,
       );
       return null;
     }
 
-    if (emailMatches.rowCount === 1) {
+    if ((emailMatches.rowCount ?? 0) === 1) {
       const dbMatch = emailMatches.rows[0];
       if (!dbMatch.firebase_uid) {
         // Map account dynamically if missing (migration helper)
@@ -57,7 +57,7 @@ const resolveUserFromFirebase = async (uid: string, email?: string) => {
     }
   }
 
-  return dbUser.rowCount > 0 ? dbUser.rows[0] : null;
+  return (dbUser.rowCount ?? 0) > 0 ? dbUser.rows[0] : null;
 };
 
 export const optionalAuthenticateToken = async (
@@ -79,6 +79,7 @@ export const optionalAuthenticateToken = async (
 
     try {
       // 1. Try Firebase Auth
+      const adminAuth = await getAdminAuth();
       const decodedFirebaseToken = await adminAuth.verifyIdToken(token);
       console.log(
         `[AUTH] Firebase token verified for UID: ${decodedFirebaseToken.uid}`,
@@ -152,6 +153,7 @@ export const authenticateToken = async (
 
     try {
       // 1. Try Firebase Auth
+      const adminAuth = await getAdminAuth();
       const decodedFirebaseToken = await adminAuth.verifyIdToken(token);
       console.log(
         `[AUTH] Firebase token verified for UID: ${decodedFirebaseToken.uid}`,
@@ -244,7 +246,7 @@ export const isDoctor = async (
   res: Response,
   next: NextFunction,
 ) => {
-  if (req.user?.role === "DOCTOR") {
+  if (req.user?.role?.toLowerCase() === "doctor") {
     next();
   } else {
     res.status(403).json({ error: "Requires doctor privileges" });
@@ -256,7 +258,7 @@ export const isAdmin = async (
   res: Response,
   next: NextFunction,
 ) => {
-  if (req.user?.role === "ADMIN") {
+  if (["admin", "superadmin", "assistant_admin"].includes(req.user?.role?.toLowerCase() ?? "")) {
     next();
   } else {
     res.status(403).json({ error: "Requires admin privileges" });
