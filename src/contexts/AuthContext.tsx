@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, isFirebaseConfigured } from '../lib/firebase';
 import { apiClient } from '../apiClient';
 
 interface User {
@@ -43,6 +43,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
+    if (!auth || !isFirebaseConfigured) {
+      fetchMe();
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // user logged in via firebase
@@ -60,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              idToken: await firebaseUser.getIdToken(),
               uid: firebaseUser.uid,
               email: firebaseUser.email || `${firebaseUser.uid}@${providerName}.unknown`,
               displayName: firebaseUser.displayName,
@@ -93,7 +99,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth);
+    }
     await apiClient('/api/users/logout', { method: 'POST' });
     setUser(null);
   };

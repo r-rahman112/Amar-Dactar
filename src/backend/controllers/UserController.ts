@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { query } from "../config/db";
 import { AuthRequest } from "../middleware/auth";
 import { ENV } from "../config/env";
-import { adminAuth } from "../config/firebase-admin";
+import { getAdminAuth, getFirebaseAdminStatus } from "../config/firebase-admin";
 
 const handleDBError = (e: any, res: Response) => {
   console.error("[DB Error]", e.message);
@@ -375,64 +375,45 @@ const initDB = async () => {
       )
     `);
 
-    // Check if database is empty to conditionally run admin seed
-    const usersCountRes = await query("SELECT COUNT(*) as count FROM users");
-    const isDbEmpty = parseInt(usersCountRes.rows[0].count) === 0;
+    if (ENV.ADMIN_SEED) {
+      const adminEmail = ENV.ADMIN_SEED_EMAIL;
+      const adminPassword = ENV.ADMIN_SEED_PASSWORD;
+      const adminName = ENV.ADMIN_SEED_NAME;
 
-    if (isDbEmpty || ENV.ADMIN_SEED) {
-      // Demo admin account
-      const adminEmail = "coding.shawon112@gmail.com";
+      if (!adminEmail || !adminPassword) {
+        throw new Error("ADMIN_SEED requires ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD");
+      }
+
       const adminCheck = await query("SELECT id FROM users WHERE email = $1", [
         adminEmail,
       ]);
-      
-      if (adminCheck.rowCount === 0) {
-        const hash = await bcrypt.hash("Admin112", 10);
-        let firebaseUid = null;
-        try {
-          const fbUser = await adminAuth.createUser({
+
+      let firebaseUid = null;
+      try {
+        const existing = await (await getAdminAuth()).getUserByEmail(adminEmail);
+        firebaseUid = existing.uid;
+      } catch (err: any) {
+        if (err.code === "auth/user-not-found") {
+          const fbUser = await (await getAdminAuth()).createUser({
             email: adminEmail,
-            password: "Admin112",
-            displayName: "Admin User",
+            password: adminPassword,
+            displayName: adminName,
           });
           firebaseUid = fbUser.uid;
-        } catch (fbErr: any) {
-           if (fbErr.code === 'auth/email-already-exists') {
-             const existing = await adminAuth.getUserByEmail(adminEmail);
-             firebaseUid = existing.uid;
-           } else {
-             console.error("[Firebase] Failed to seed demo admin:", fbErr);
-           }
+        } else {
+          console.error("[Firebase] Failed to resolve seed admin:", err);
         }
-  
+      }
+
+      if (adminCheck.rowCount === 0) {
+        const hash = await bcrypt.hash(adminPassword, 10);
         await query(
           "INSERT INTO users (id, fullName, email, password, role, profile_completed, firebase_uid) VALUES ($1, $2, $3, $4, $5, true, $6)",
-          [uuidv4(), "Admin User", adminEmail, hash, "admin", firebaseUid],
+          [uuidv4(), adminName, adminEmail, hash, "admin", firebaseUid],
         );
-        console.log(
-          "Demo Admin Account Seeded (DB+Firebase): coding.shawon112@gmail.com / Admin112",
-        );
-      } else if (ENV.ADMIN_SEED) {
-         // Check if we need to sync to Firebase anyway, ONLY if explicitly seeding
-         let firebaseUid = null;
-         try {
-             const existing = await adminAuth.getUserByEmail(adminEmail);
-             firebaseUid = existing.uid;
-         } catch (err: any) {
-             if (err.code === 'auth/user-not-found') {
-                 const fbUser = await adminAuth.createUser({
-                    email: adminEmail,
-                    password: "Admin112",
-                    displayName: "Admin User",
-                 });
-                 firebaseUid = fbUser.uid;
-                 console.log("Seeded missing Demo Admin in Firebase");
-             }
-         }
-         if (firebaseUid) {
-             // Only update if it's currently NULL to preserve immutability of existing firebase_uid
-             await query("UPDATE users SET firebase_uid = $1 WHERE email = $2 AND firebase_uid IS NULL", [firebaseUid, adminEmail]);
-         }
+        console.log(`Admin seed account created for ${adminEmail}`);
+      } else if (firebaseUid) {
+        await query("UPDATE users SET firebase_uid = $1 WHERE email = $2 AND firebase_uid IS NULL", [firebaseUid, adminEmail]);
       }
     }
   } catch (err) {
@@ -456,10 +437,10 @@ export class UserController {
 
       res.json({
         status: "ok",
-        database: dbCheck.rowCount > 0 ? "connected" : "error",
+        database: (dbCheck.rowCount ?? 0) > 0 ? "connected" : "error",
         firebase_uid_column: firebaseUidAvailable,
         // Firebase Admin doesn't have a direct ping, but if we can require it, it's a start
-        firebase_admin: !!require("firebase-admin").apps.length,
+        firebase_admin: getFirebaseAdminStatus(),
       });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -751,7 +732,7 @@ export class UserController {
 
       let firebaseUser;
       try {
-        firebaseUser = await adminAuth.createUser({
+        firebaseUser = await (await getAdminAuth()).createUser({
           email: email,
           password: password,
           displayName: fullName,
@@ -785,7 +766,7 @@ export class UserController {
         console.error(`[SIGNUP FAILURE] Email: ${email}, Mobile: ${mobile || 'N/A'}, Timestamp: ${new Date().toISOString()}, Reason: DB insert failed - ${dbErr.message}`);
         console.error(`[DB Auth Error] DB insert failed, deleting firebase user ${firebaseUid}:`, dbErr.message);
         try {
-          await adminAuth.deleteUser(firebaseUid);
+          await (await getAdminAuth()).deleteUser(firebaseUid);
         } catch (delErr) {
           console.error(`[CRITICAL] Failed to clean up orphaned Firebase user ${firebaseUid}`, delErr);
         }
@@ -1044,6 +1025,7 @@ export class UserController {
   static async socialLogin(req: Request, res: Response) {
     try {
       const {
+        idToken,
         uid,
         email,
         displayName,
@@ -1051,10 +1033,15 @@ export class UserController {
         hasAcceptedConsent,
         provider,
       } = req.body;
-      if (!uid || !email || !provider) {
+      if (!idToken || !uid || !email || !provider) {
         return res
           .status(400)
           .json({ error: "Missing required Social Auth fields" });
+      }
+
+      const decodedToken = await (await getAdminAuth()).verifyIdToken(idToken);
+      if (decodedToken.uid !== uid || decodedToken.email !== email) {
+        return res.status(403).json({ error: "Invalid Firebase identity token" });
       }
 
       let result = await query("SELECT * FROM users WHERE email = $1", [email]);
