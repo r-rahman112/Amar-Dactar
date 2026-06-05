@@ -28,29 +28,57 @@ validateEnv();
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT || 3000);
   
   const httpServer = createServer(app);
   setupSocketIO(httpServer);
 
   const isDev = process.env.NODE_ENV !== "production";
 
+  const cspDirectives: Record<string, string[]> = {
+    defaultSrc: ["'self'"],
+    scriptSrc: isDev ? ["'self'", "'unsafe-inline'"] : ["'self'"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://res.cloudinary.com"],
+    imgSrc: [
+      "'self'",
+      "data:",
+      "blob:",
+      "https://images.unsplash.com",
+      "https://firebasestorage.googleapis.com",
+      "https://*.googleusercontent.com",
+    ],
+    connectSrc: [
+      "'self'",
+      "ws:",
+      "wss:",
+      "https://openrouter.ai",
+      "https://identitytoolkit.googleapis.com",
+      "https://securetoken.googleapis.com",
+      "https://firestore.googleapis.com",
+      "https://firebasestorage.googleapis.com",
+      "https://*.googleapis.com",
+      "http://localhost:11434",
+      "http://127.0.0.1:11434",
+    ],
+    objectSrc: ["'none'"],
+    baseUri: ["'self'"],
+    formAction: ["'self'"],
+    frameAncestors: isDev
+      ? ["'self'", "https://*.run.app", "https://*.google.com", "https://ai.studio", "http://localhost:*"]
+      : ["'self'"],
+  };
+
+  if (!isDev) {
+    cspDirectives.upgradeInsecureRequests = [];
+  }
+
   // Security Middleware
   app.use(helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://res.cloudinary.com"],
-        imgSrc: ["'self'", "data:", "blob:", "https://images.unsplash.com"],
-        connectSrc: ["'self'", "ws:", "wss:", "https://openrouter.ai", "http://localhost:11434", "http://127.0.0.1:11434"],
-        objectSrc: ["'none'"],
-        baseUri: ["'self'"],
-        formAction: ["'self'"],
-        frameAncestors: isDev ? ["'self'", "https://*.run.app", "https://*.google.com", "https://ai.studio", "http://localhost:*"] : ["'self'"],
-        upgradeInsecureRequests: [],
-      }
+      useDefaults: false,
+      directives: cspDirectives,
     }
   }));
   app.use(cors({

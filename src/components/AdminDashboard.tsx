@@ -258,7 +258,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         <CartesianGrid vertical={false} stroke="#f1f5f9" />
                         <Tooltip 
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                          formatter={(value: number) => [`$${value}`, 'Revenue']}
+                          formatter={(value) => [`$${Number(value ?? 0)}`, 'Revenue']}
                         />
                         <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
                       </AreaChart>
